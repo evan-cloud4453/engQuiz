@@ -495,8 +495,8 @@
         document.getElementById('prev-btn').style.visibility = currentQIndex === 0 ? 'hidden' : 'visible';
         const nextBtn = document.getElementById('next-btn');
         if (isLastQ) {
-            nextBtn.textContent = "현재 파트 제출"; nextBtn.style.color = "#000"; nextBtn.className = "btn btn-inline";
-            nextBtn.onclick = () => { if(confirm("제출하시겠습니까? (수정 불가)")) moveToNextPart(); };
+            nextBtn.textContent = "제출"; nextBtn.style.color = "#000"; nextBtn.className = "btn btn-inline";
+            nextBtn.onclick = () => { if(confirm("제출 이후에는 수정이 불가합니다. 제출하시겠습니까?")) moveToNextPart(); };
         } else {
             nextBtn.textContent = "다음 문항 →"; nextBtn.className = "btn outline btn-inline"; nextBtn.style.color = "";
             nextBtn.onclick = handleNext;
