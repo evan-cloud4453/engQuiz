@@ -3,7 +3,7 @@
 
 const partsInfo = [
     {
-        title: "Part 1. 단순 의미 확인",
+        title: "Part 1. 의미 파악",
         timeLimit: 480,
         instruction: "제시된 영단어의 정확한 뜻을 고르시오.",
         example: {
@@ -18,35 +18,35 @@ const partsInfo = [
         ]
     },
     {
-        title: "Part 2. 동의어 / 반의어",
+        title: "Part 2. 동의어 / 반의어 파악",
         timeLimit: 420,
         instruction: "다음 중 짝지어진 단어의 관계(동의어/반의어)가 <b>나머지 셋과 다른 하나</b>를 고르시오.",
         example: {
-            q: "관계가 다른 하나는?",
+            q: "다음 중 단어의 관계(동의어/반의어)가 나머지 셋과 다른 하나를 고르시오.",
             options: ["(A) abandon - give up", "(B) reduce - decrease", "(C) expand - contract", "(D) distinguish - differentiate"],
             answer: "(C) expand - contract"
         },
         questions: [
-            { q: "관계가 다른 하나는?", options: ["(A) abandon - give up", "(B) reduce - decrease", "(C) expand - contract", "(D) distinguish - differentiate"], answer: "(C) expand - contract" },
+            { q: "다음 중 단어의 관계(동의어/반의어)가 나머지 셋과 다른 하나를 고르시오.", options: ["(A) abandon - give up", "(B) reduce - decrease", "(C) expand - contract", "(D) distinguish - differentiate"], answer: "(C) expand - contract" },
             // ... (나머지 Part 2 문제들)
         ]
     },
     {
-        title: "Part 3. 품사 및 의미 확인",
+        title: "Part 3. 품사 / 의미 파악",
         timeLimit: 300,
         instruction: "제시된 단어의 정확한 품사와 뜻을 고르시오. (명사: n. / 동사: v. / 형용사: adj. / 부사: ad.)",
         example: {
             q: "consistently",
-            options: ["(A) adj. 지속적인", "(B) n. 일관성", "(C) v. 구성되다", "(D) ad. 지속적으로, 일관되게"],
-            answer: "(D) ad. 지속적으로, 일관되게"
+            options: ["adj. 지속적인", "n. 일관성", "v. 구성되다", "ad. 지속적으로, 일관되게"],
+            answer: "ad. 지속적으로, 일관되게"
         },
         questions: [
-            { q: "consistently", options: ["(A) adj. 지속적인", "(B) n. 일관성", "(C) v. 구성되다", "(D) ad. 지속적으로, 일관되게"], answer: "(D) ad. 지속적으로, 일관되게" },
+            { q: "consistently", options: ["adj. 지속적인", "n. 일관성", "v. 구성되다", "ad. 지속적으로, 일관되게"], answer: "ad. 지속적으로, 일관되게" },
             // ... (나머지 Part 3 문제들, adv.를 ad.로 수정해서 넣으세요)
         ]
     },
     {
-        title: "Part 4. 실전 문맥 파악",
+        title: "Part 4. 문맥 파악",
         timeLimit: 900,
         instruction: "다음 문장의 빈칸에 들어갈 가장 알맞은 어휘를 고르시오.",
         example: {
@@ -60,7 +60,7 @@ const partsInfo = [
         ]
     },
     {
-        title: "Part 5. 철자 배열 (Scramble)",
+        title: "Part 5. 철자 배열",
         timeLimit: 540,
         instruction: "제시된 한글 뜻과 무작위로 섞인 알파벳 힌트를 보고, 올바른 영단어 스펠링을 입력창에 타이핑하시오.",
         example: {
@@ -77,7 +77,7 @@ const partsInfo = [
         ]
     },
     {
-        title: "Part 6. 철자 쓰기 (주관식)",
+        title: "Part 6. 철자 입력",
         timeLimit: 960,
         instruction: "해석과 첫 글자 힌트를 보고, 문맥에 맞는 단어를 <b>완전한 스펠링</b>으로 타이핑하시오.",
         example: {
