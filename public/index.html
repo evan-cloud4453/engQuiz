@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT 어휘 평가 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="pause-overlay">
+    <h1>시험이 일시 정지되었습니다.</h1>
+    <p>선생님의 지시를 기다려주세요.</p>
+</div>
+
+<div class="app-container">
+    <div id="login-screen" class="screen active">
+        <h1>과학사 어휘 평가</h1>
+        <div class="login-box">
+            <button class="btn" onclick="showLoginForm('student')">학생 모드</button>
+            <button class="btn outline" onclick="showLoginForm('teacher')">선생님 모드</button>
+        </div>
+        <div id="student-form" style="display:none; margin-top:20px;">
+            <input type="text" id="student-name" placeholder="이름(또는 학번)을 입력하세요" class="input-field">
+            <button class="btn" onclick="login('student')">입장하기</button>
+        </div>
+        <div id="teacher-form" style="display:none; margin-top:20px;">
+            <input type="password" id="teacher-pw" placeholder="관리자 비밀번호" class="input-field">
+            <button class="btn" onclick="login('teacher')">관리자 접속</button>
+        </div>
+    </div>
+
+    <div id="waiting-screen" class="screen">
+        <h2>대기실</h2>
+        <p>선생님의 시험 승인을 기다리고 있습니다...</p>
+        <div class="spinner"></div>
+    </div>
+
+    <div id="teacher-screen" class="screen">
+        <h2>실시간 시험 현황판</h2>
+        <div id="student-list" class="student-grid"></div>
+    </div>
+
+    <div id="direction-screen" class="screen">
+        <h2 id="dir-title">Part 1</h2>
+        <div class="direction-box">
+            <p id="dir-desc">안내문이 여기에 표시됩니다.</p>
+            <p style="color:var(--wrong-color); font-weight:bold;">※ 시험 중에는 임의로 일시정지할 수 없으며, 시간 초과 시 다음 파트로 강제 이동됩니다.</p>
+            <p>제한 시간: <span id="dir-time"></span></p>
+        </div>
+        <button class="btn" onclick="startPart()">시험 시작</button>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-header">
+            <span id="quiz-title">Part 1</span>
+            <span id="quiz-timer" class="timer">00:00</span>
+        </div>
+        <div id="progress-container" class="progress-container"></div>
+        
+        <div id="question-text" class="question-text">Q. 질문</div>
+        <div id="options-container" class="options"></div>
+        <input type="text" id="text-answer" class="input-field" style="display:none;" placeholder="정답을 입력하세요">
+
+        <div class="nav-buttons">
+            <button class="btn outline btn-inline" id="prev-btn" onclick="handlePrev()">이전 문항</button>
+            <button class="btn btn-inline" id="next-btn" onclick="handleNext()">다음 문항</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h2>시험 종료</h2>
+        <p>모든 파트의 시험이 완료되었습니다.</p>
+        <button class="btn" onclick="showReview()">오답 노트 보기</button>
+    </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="data.js"></script> <script src="script.js"></script>
+</body>
+</html>
