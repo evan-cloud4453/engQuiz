@@ -8,8 +8,8 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-let students = {}; // 현재 접속/진행 중인 학생 상태
-let testRecords = []; // 선생님이 승인한 모든 학생의 시험 결과 보관소
+let students = {}; 
+let testRecords = []; 
 let teacherSocketId = null;
 
 io.on('connection', (socket) => {
@@ -37,18 +37,16 @@ io.on('connection', (socket) => {
             students[socket.id] = {
                 id: socket.id,
                 name: name,
-                status: 'waiting', // waiting, testing, paused, waiting_approval, completed
+                status: 'waiting',
                 currentPart: 1,
                 currentQ: 1,
                 finalData: null
             };
-            
             socket.emit('loginSuccess', { role: 'student', name: name });
             if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
         }
     });
 
-    // 선생님: 시험 시작 승인
     socket.on('startTest', (studentId) => {
         if (students[studentId]) {
             students[studentId].status = 'testing';
@@ -57,7 +55,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 선생님: 일시 정지 및 재개
     socket.on('togglePause', (studentId) => {
         if (students[studentId]) {
             if (students[studentId].status === 'testing') {
@@ -71,7 +68,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 학생: 진척도 실시간 업데이트
     socket.on('updateProgress', (data) => {
         if (students[socket.id]) {
             students[socket.id].currentPart = data.part;
@@ -80,7 +76,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 학생: 시험 조기/최종 제출 (승인 대기 상태로 전환)
     socket.on('submitTest', (finalData) => {
         if (students[socket.id]) {
             students[socket.id].status = 'waiting_approval';
@@ -89,13 +84,10 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 선생님: 최종 시험 종료 승인
     socket.on('approveTest', (studentId) => {
         let st = students[studentId];
         if (st && st.status === 'waiting_approval') {
             st.status = 'completed';
-            
-            // 기록 생성
             const record = {
                 id: Date.now() + Math.floor(Math.random() * 1000),
                 studentName: st.name,
@@ -104,17 +96,32 @@ io.on('connection', (socket) => {
                 total: st.finalData.total,
                 details: st.finalData.details
             };
-            testRecords.push(record); // 서버에 저장
+            testRecords.push(record);
 
-            io.to(studentId).emit('testApproved', record); // 학생에게 결과 전송
+            io.to(studentId).emit('testApproved', record);
             if (teacherSocketId) {
                 io.to(teacherSocketId).emit('updateStudents', students);
-                io.to(teacherSocketId).emit('updateRecords', testRecords); // 선생님 기록 갱신
+                io.to(teacherSocketId).emit('updateRecords', testRecords);
             }
         }
     });
 
-    // 접속 종료
+    // 선생님: 학생 기록 삭제 기능
+    socket.on('deleteRecord', (recordId) => {
+        if (socket.id === teacherSocketId) {
+            testRecords = testRecords.filter(r => r.id !== recordId);
+            io.to(teacherSocketId).emit('updateRecords', testRecords);
+        }
+    });
+    
+    // 선생님: 전체 기록 삭제 기능
+    socket.on('deleteAllRecords', () => {
+        if (socket.id === teacherSocketId) {
+            testRecords = [];
+            io.to(teacherSocketId).emit('updateRecords', testRecords);
+        }
+    });
+
     socket.on('disconnect', () => {
         if (socket.id === teacherSocketId) {
             teacherSocketId = null;
