@@ -1,16 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta property="og:title" content="과학사 상식 퀴즈">
-    <meta property="og:description" content="세상을 바꾼 과학적 발견, 흥미진진한 퀴즈로 나의 과학 상식을 테스트해 보세요.">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBT 과학사 어휘 평가</title>
+    <title>CBT 어휘 평가 시스템</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* =========================================
-           1. 기존 고대 이집트 다크 테마 변수 및 기본 설정
-           ========================================= */
+        /* 1. 고대 이집트 다크 테마 변수 */
         :root {
             --container-bg: rgba(26, 20, 16, 0.92);
             --text-main: #e8dcc5;
@@ -28,9 +24,7 @@
         }
 
         body {
-            font-family: 'Noto Serif KR', serif;
-            color: var(--text-main);
-            margin: 0; padding: 20px;
+            font-family: 'Noto Serif KR', serif; color: var(--text-main); margin: 0; padding: 20px;
             display: flex; justify-content: center; align-items: center; min-height: 90vh;
             background-color: #0d0a08;
             background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(10, 5, 0, 0.85)), url('https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/555920/ss_1c06d2262e79f8d4500ee9ec8835d7bd0eadf2e0.1920x1080.jpg?t=1772366087');
@@ -44,27 +38,30 @@
             padding: 50px 40px; position: relative; backdrop-filter: blur(5px);
         }
 
-        h1, h2, h3 { color: var(--accent-color); font-weight: 700; text-align: center; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        h1, h2, h3 { color: var(--accent-color); font-weight: 700; text-align: center; letter-spacing: 1px; }
         .screen { display: none; animation: fadeIn 0.5s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 공통 버튼 스타일 */
+        /* 공통 버튼 & 입력 */
         .btn {
             font-family: 'Noto Serif KR', serif; background-color: var(--accent-color); color: #0d0a08;
             border: 1px solid #ffdc73; padding: 14px 24px; border-radius: 2px; cursor: pointer;
             font-size: 1.1em; font-weight: bold; transition: all 0.3s; display: block; width: 100%; margin-bottom: 15px;
-            box-shadow: inset 0 0 10px rgba(255,255,255,0.2), 0 4px 6px rgba(0,0,0,0.5);
         }
         .btn:hover:not(:disabled) { background-color: var(--accent-hover); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4); transform: translateY(-2px); }
-        .btn.outline { background-color: var(--btn-bg); color: var(--accent-color); border: 1px solid var(--accent-color); box-shadow: none; }
+        .btn.outline { background-color: var(--btn-bg); color: var(--accent-color); border: 1px solid var(--accent-color); }
         .btn.outline:hover:not(:disabled) { background-color: var(--btn-hover); color: #ffdc73; }
-        .btn:disabled { background-color: var(--btn-bg); color: var(--text-muted); border: 1px solid var(--border-color); cursor: not-allowed; transform: none; }
+        .btn:disabled { background-color: var(--btn-bg); color: var(--text-muted); border: 1px solid var(--border-color); cursor: not-allowed; }
         .btn-inline { width: auto; display: inline-block; margin-bottom: 0; }
+        
+        .input-field {
+            width: 100%; padding: 15px; font-size: 1.1em; margin-bottom: 15px; text-align: center;
+            background-color: rgba(0,0,0,0.5); color: var(--text-main); border: 1px solid var(--border-color); 
+            box-sizing: border-box; font-family: 'Noto Serif KR', serif;
+        }
+        .input-field:focus { outline: none; border-color: var(--accent-color); }
 
-        /* =========================================
-           2. CBT 전용 추가 스타일 (로그인, 입력창, 현황판)
-           ========================================= */
         #mode-badge {
             position: absolute; top: 15px; left: 20px; font-weight: bold; font-size: 0.9em;
             padding: 5px 10px; border-radius: 2px; border: 1px solid var(--accent-color); display: none;
@@ -72,36 +69,33 @@
         .mode-student { background-color: var(--btn-bg); color: var(--accent-color); }
         .mode-teacher { background-color: var(--accent-color); color: #000; }
 
-        .login-box { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
-        .input-field {
-            width: 100%; padding: 15px; font-size: 1.1em; margin-bottom: 15px; text-align: center;
-            background-color: rgba(0,0,0,0.5); color: var(--text-main); border: 1px solid var(--border-color); 
-            box-sizing: border-box; font-family: 'Noto Serif KR', serif;
-        }
-        .input-field:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 8px rgba(212, 175, 55, 0.3); }
-
-        /* 일시정지 오버레이 */
         #pause-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.95); z-index: 9999;
             justify-content: center; align-items: center; flex-direction: column; color: var(--wrong-color);
         }
 
-        /* 선생님 현황판 */
+        /* 선생님 현황판 및 기록 */
         .student-grid { display: flex; flex-direction: column; gap: 15px; max-height: 500px; overflow-y: auto; padding-right: 10px; }
         .student-card { border: 1px solid var(--border-color); padding: 20px; background: var(--btn-bg); border-radius: 2px; }
         .student-card h3 { text-align: left; margin-top: 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; }
         .student-status { float: right; font-size: 0.85em; padding: 3px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
-        .status-waiting { color: var(--accent-color); }
-        .status-testing { color: var(--correct-color); }
-        .status-paused { color: var(--wrong-color); }
-
+        
         /* 퀴즈 UI */
         .quiz-header { display: flex; justify-content: space-between; font-size: 1.1em; font-weight: bold; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;}
         .timer { color: var(--wrong-color); font-size: 1.2em; text-shadow: 0 0 5px rgba(229, 115, 115, 0.5); }
-        .direction-box { background-color: var(--btn-bg); padding: 25px; border: 1px solid var(--border-color); margin-bottom: 25px; line-height: 1.6; text-align: center; }
         
+        /* 디렉션 예시 미니 UI */
+        .direction-box { background-color: var(--btn-bg); padding: 25px; border: 1px solid var(--border-color); margin-bottom: 25px; line-height: 1.6; }
+        .mini-quiz { background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 2px; font-size: 0.9em; text-align: left; }
+        .mini-quiz .mini-q { margin-bottom: 10px; font-weight: bold; color: var(--accent-color); }
+        .mini-quiz .mini-opt { padding: 8px; border: 1px solid var(--border-color); margin-bottom: 5px; background: var(--btn-bg); }
+        .mini-quiz .mini-opt.highlight { background-color: var(--correct-bg); color: var(--correct-color); border-color: var(--correct-color); font-weight: bold; }
+
+        /* 문제 텍스트 중앙 정렬 클래스 */
         .question-text { font-size: 1.2em; margin-bottom: 25px; line-height: 1.6; text-align: left; padding: 15px; background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-color); }
+        .question-text.centered { text-align: center; font-size: 1.5em; border-left: none; background: none; border-top: 1px dashed var(--border-color); border-bottom: 1px dashed var(--border-color); padding: 30px 10px; }
+
         .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;}
         .option-btn {
             background-color: var(--btn-bg); color: var(--text-main); text-align: left;
@@ -109,14 +103,14 @@
         }
         .option-btn:hover { background-color: var(--btn-hover); border-color: var(--accent-color); }
         .option-btn.selected { background-color: rgba(212, 175, 55, 0.1); border-color: var(--accent-color); color: var(--accent-color); font-weight: bold; }
-        
         .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px; }
 
-        /* 스크롤바 */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--btn-bg); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+        /* 비망록 (오답노트) */
+        .record-item { border-bottom: 1px dashed var(--border-color); padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
+        .review-q-card { border: 1px solid var(--border-color); background-color: var(--btn-bg); padding: 20px; margin-bottom: 15px; border-radius: 2px; }
+        .badge { padding: 4px 10px; font-size: 0.85em; font-weight: bold; border-radius: 2px; color: #111; }
+        .badge.correct { background-color: var(--correct-color); }
+        .badge.wrong { background-color: var(--wrong-color); }
     </style>
 </head>
 <body>
@@ -130,29 +124,27 @@
 </div>
 
 <div class="app-container">
-    
     <div id="mode-badge"></div>
 
     <div id="login-screen" class="screen active">
-        <h1 style="font-size: 3.5em; margin-bottom: 5px; text-shadow: 2px 2px 0px #000, 4px 4px 5px rgba(0,0,0,0.8);">과학사 평가</h1>
-        <p style="text-align: center; color: var(--text-muted); margin-bottom: 40px; font-style: italic;">CBT Interactive Quiz System</p>
+        <h1 style="font-size: 3.5em; margin-bottom: 5px;">어휘 평가 CBT</h1>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 40px; font-style: italic;">Interactive Vocabulary Quiz</p>
         
         <div style="max-width: 400px; margin: 0 auto;">
-            <div class="login-box">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <button class="btn outline" onclick="showLoginForm('student')">학생 모드</button>
                 <button class="btn outline" onclick="showLoginForm('teacher')">선생님 모드</button>
             </div>
 
             <div id="student-form" style="display:none; text-align: center;">
-                <p style="color: var(--accent-color); margin-bottom: 10px;">이름 또는 학번을 입력하십시오.</p>
-                <input type="text" id="student-name" placeholder="예: 홍길동 (20260001)" class="input-field">
+                <input type="text" id="student-name" placeholder="이름 (예: 홍길동)" class="input-field">
                 <button class="btn" onclick="login('student')">신전 입장하기</button>
+                <button class="btn outline" style="margin-top:20px;" onclick="showStudentRecords()">내 기록(오답노트) 열람</button>
             </div>
 
             <div id="teacher-form" style="display:none; text-align: center;">
-                <p style="color: var(--accent-color); margin-bottom: 10px;">관리자 비밀번호를 입력하십시오.</p>
-                <input type="password" id="teacher-pw" placeholder="비밀번호" class="input-field">
-                <button class="btn" onclick="login('teacher')">감독관 모드 접속</button>
+                <input type="password" id="teacher-pw" placeholder="관리자 비밀번호" class="input-field">
+                <button class="btn" onclick="login('teacher')">감독관 접속</button>
             </div>
         </div>
     </div>
@@ -166,20 +158,22 @@
 
     <div id="teacher-screen" class="screen">
         <h2>실시간 시험 현황판</h2>
-        <div style="text-align: right; margin-bottom: 15px;">
-            <button class="btn outline btn-inline" style="padding: 8px 15px; font-size: 0.9em;" onclick="location.reload()">로그아웃</button>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <button class="btn outline btn-inline" style="padding: 8px 15px;" onclick="showTeacherRecords()">모든 학생 기록 열람</button>
+            <button class="btn outline btn-inline" style="padding: 8px 15px;" onclick="location.reload()">로그아웃</button>
         </div>
-        <div id="student-list" class="student-grid">
-            </div>
+        <div id="student-list" class="student-grid"></div>
     </div>
 
     <div id="direction-screen" class="screen">
-        <h2 id="dir-title" style="font-size: 2em; margin-bottom: 30px;">Part 1</h2>
+        <h2 id="dir-title" style="font-size: 2em; margin-bottom: 20px;">Part 1</h2>
         <div class="direction-box">
-            <p id="dir-desc" style="font-size: 1.1em; color: var(--text-main); margin-bottom: 20px;">안내문이 여기에 표시됩니다.</p>
-            <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 20px 0;">
-            <p style="color:var(--wrong-color); font-weight:bold; font-size: 1.1em;">※ 주의: 시험 중 임의로 일시정지할 수 없으며,<br>시간 초과 시 다음 파트로 자동 이동됩니다.</p>
-            <p style="font-size: 1.3em; margin-top: 20px; color: var(--accent-color);">배정 시간: <span id="dir-time" style="font-weight: bold;"></span></p>
+            <p id="dir-desc" style="font-size: 1.1em; text-align: center;">안내문</p>
+            
+            <div id="dir-example" class="mini-quiz"></div>
+
+            <p style="color:var(--wrong-color); font-weight:bold; font-size: 1em; text-align: center; margin-top:20px;">※ 시간 초과 시 다음 파트로 자동 이동됩니다. (일시정지 불가)</p>
+            <p style="font-size: 1.2em; text-align: center; color: var(--accent-color);">배정 시간: <span id="dir-time" style="font-weight: bold;"></span></p>
         </div>
         <div style="max-width: 300px; margin: 0 auto;">
             <button class="btn" onclick="startPart()">이 파트 시작하기</button>
@@ -192,13 +186,13 @@
             <span id="quiz-timer" class="timer">00:00</span>
         </div>
         
-        <div class="question-text">
+        <div id="question-wrapper" class="question-text">
             <strong style="color: var(--accent-color); margin-right: 5px;" id="q-number">Q.</strong> 
             <span id="question-text-content">질문 내용</span>
         </div>
         
         <div id="options-container" class="options"></div>
-        <input type="text" id="text-answer" class="input-field" style="display:none;" placeholder="여기에 정답 철자를 입력하세요">
+        <input type="text" id="text-answer" class="input-field" style="display:none; text-align: left;" placeholder="여기에 정답을 입력하세요">
 
         <div class="nav-buttons">
             <button class="btn outline btn-inline" id="prev-btn" onclick="handlePrev()">← 이전 문항</button>
@@ -206,16 +200,40 @@
         </div>
     </div>
 
+    <div id="waiting-approval-screen" class="screen">
+        <h1 style="font-size: 2.5em; margin-top: 50px;">제출 완료</h1>
+        <p style="text-align: center; font-size: 1.2em; color: var(--text-muted); margin-top: 30px;">
+            모든 파트의 풀이가 끝났습니다.<br>선생님의 최종 시험 종료 승인을 기다려주세요.
+        </p>
+    </div>
+
     <div id="result-screen" class="screen">
         <h1 style="font-size: 3em; margin-top: 50px;">시험 종료</h1>
-        <p style="text-align: center; font-size: 1.2em; color: var(--text-muted); margin-bottom: 40px; line-height: 1.6;">
-            모든 파트의 시험이 완료되었습니다.<br>답안이 서버로 안전하게 전송되었습니다.
+        <p style="text-align: center; font-size: 1.2em; margin-bottom: 20px;">
+            최종 점수: <strong id="res-score" style="color:var(--accent-color); font-size:1.5em;"></strong> / <span id="res-total"></span>
         </p>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 40px;">결과가 서버에 안전하게 보관되었습니다.</p>
         <div style="max-width: 300px; margin: 0 auto;">
-            <button class="btn outline" onclick="location.reload()">처음으로 돌아가기</button>
+            <button class="btn" onclick="viewMyRecentRecord()">오답 노트 바로가기</button>
+            <button class="btn outline" onclick="location.reload()">메인으로</button>
         </div>
     </div>
 
+    <div id="records-screen" class="screen">
+        <h2 id="records-title">과거의 기록</h2>
+        <div id="records-list" class="student-grid"></div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn outline btn-inline" onclick="goBackFromRecords()">← 돌아가기</button>
+        </div>
+    </div>
+
+    <div id="review-screen" class="screen">
+        <h2 id="review-title">오답 노트</h2>
+        <div id="review-content" class="student-grid" style="max-height: 60vh;"></div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn outline btn-inline" onclick="switchScreen('records-screen')">← 목록으로</button>
+        </div>
+    </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -226,74 +244,60 @@
     let currentRole = '';
     let myName = '';
 
-    // 시험 데이터 상태
     let currentPartIndex = 0;
     let currentQIndex = 0;
     let remainingTime = 0;
     let timerInterval = null;
-    let userAnswers = {}; // 파트별 유저 답안 저장
+    let userAnswers = {}; 
 
-    // 오디오 컨텍스트 (오류 방지를 위해 재생 보장 로직 간소화)
+    let globalRecords = []; // 서버에서 받은 전체 기록 (선생님용)
+    let myLocalRecords = JSON.parse(localStorage.getItem('myVocabRecords')) || []; // 학생 로컬 기록
+
     const bgm = document.getElementById('bgm');
     const quizBgm = document.getElementById('quiz-bgm');
     bgm.volume = 0.3; quizBgm.volume = 0.3;
 
-    // 화면 전환 함수
     function switchScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         window.scrollTo(0, 0);
 
-        // BGM 자동 전환
         if (id === 'quiz-screen') {
-            bgm.pause();
-            quizBgm.play().catch(() => {});
-        } else if (id === 'login-screen' || id === 'waiting-screen') {
-            quizBgm.pause();
-            bgm.play().catch(() => {});
+            bgm.pause(); quizBgm.play().catch(()=>{});
+        } else {
+            quizBgm.pause(); bgm.play().catch(()=>{});
         }
     }
 
-    // 로그인 폼 토글
     function showLoginForm(role) {
         document.getElementById('student-form').style.display = role === 'student' ? 'block' : 'none';
         document.getElementById('teacher-form').style.display = role === 'teacher' ? 'block' : 'none';
-        
-        // 브라우저 정책상 사용자 인터랙션 시 BGM 재생
-        bgm.play().catch(() => {}); 
+        bgm.play().catch(()=>{});
     }
 
-    // 서버로 로그인(입장) 요청
     function login(role) {
         const data = { role: role };
         if (role === 'student') {
-            const nameInput = document.getElementById('student-name').value.trim();
-            if(!nameInput) { alert("이름을 입력해주세요."); return; }
-            data.name = nameInput;
-        }
-        if (role === 'teacher') {
-            const pwInput = document.getElementById('teacher-pw').value;
-            if(!pwInput) { alert("비밀번호를 입력해주세요."); return; }
-            data.password = pwInput;
+            data.name = document.getElementById('student-name').value.trim();
+            if(!data.name) { alert("이름을 입력해주세요."); return; }
+        } else {
+            data.password = document.getElementById('teacher-pw').value;
+            if(!data.password) { alert("비밀번호를 입력해주세요."); return; }
         }
         socket.emit('login', data);
     }
 
-    // 로그인 성공 시
     socket.on('loginSuccess', (data) => {
         currentRole = data.role;
         const badge = document.getElementById('mode-badge');
         badge.style.display = 'block';
 
         if (currentRole === 'teacher') {
-            badge.textContent = '감독관 모드';
-            badge.className = 'mode-teacher';
+            badge.textContent = '감독관 모드'; badge.className = 'mode-teacher';
             switchScreen('teacher-screen');
-        }
-        if (currentRole === 'student') {
+        } else {
             myName = data.name;
-            badge.textContent = `수험자: ${myName}`;
-            badge.className = 'mode-student';
+            badge.textContent = `수험자: ${myName}`; badge.className = 'mode-student';
             switchScreen('waiting-screen');
         }
     });
@@ -301,7 +305,7 @@
     socket.on('loginFail', (msg) => alert(msg));
 
     // ==========================================
-    // [선생님 모드 로직] 현황판 업데이트
+    // 선생님 현황판 및 기록 통신
     // ==========================================
     socket.on('updateStudents', (students) => {
         if (currentRole !== 'teacher') return;
@@ -309,7 +313,7 @@
         container.innerHTML = '';
         
         if (Object.keys(students).length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px;">접속한 학생이 없습니다.</p>';
+            container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">접속한 학생이 없습니다.</p>';
             return;
         }
 
@@ -317,33 +321,32 @@
             const card = document.createElement('div');
             card.className = 'student-card';
             
-            let statusText = '';
-            let statusClass = '';
-            let actionBtn = '';
+            let statusText = '대기중'; let statusColor = 'var(--accent-color)';
+            let actionBtn = `<button onclick="socket.emit('startTest', '${st.id}')" class="btn btn-inline">시험 승인</button>`;
+            let progressInfo = '-';
 
-            if (st.status === 'waiting') {
-                statusText = '대기중'; statusClass = 'status-waiting';
-                actionBtn = `<button onclick="socket.emit('startTest', '${st.id}')" class="btn btn-inline" style="padding: 10px; font-size:0.9em;">시험 승인</button>`;
-            } else if (st.status === 'testing') {
-                statusText = '응시중'; statusClass = 'status-testing';
-                actionBtn = `<button onclick="socket.emit('togglePause', '${st.id}')" class="btn outline btn-inline" style="padding: 10px; font-size:0.9em; border-color:var(--wrong-color); color:var(--wrong-color);">일시 정지</button>`;
+            if (st.status === 'testing') {
+                statusText = '응시중'; statusColor = 'var(--correct-color)';
+                actionBtn = `<button onclick="socket.emit('togglePause', '${st.id}')" class="btn outline btn-inline" style="border-color:var(--wrong-color); color:var(--wrong-color);">일시 정지</button>`;
+                progressInfo = `Part ${st.currentPart} 진행 중 (${st.currentQ}번)`;
             } else if (st.status === 'paused') {
-                statusText = '정지됨'; statusClass = 'status-paused';
-                actionBtn = `<button onclick="socket.emit('togglePause', '${st.id}')" class="btn outline btn-inline" style="padding: 10px; font-size:0.9em; border-color:var(--correct-color); color:var(--correct-color);">시험 재개</button>`;
-            } else if (st.status === 'finished') {
-                statusText = '제출완료'; statusClass = 'status-testing';
+                statusText = '정지됨'; statusColor = 'var(--wrong-color)';
+                actionBtn = `<button onclick="socket.emit('togglePause', '${st.id}')" class="btn outline btn-inline" style="border-color:var(--correct-color); color:var(--correct-color);">시험 재개</button>`;
+                progressInfo = `Part ${st.currentPart} 정지됨`;
+            } else if (st.status === 'waiting_approval') {
+                statusText = '최종 제출(승인대기)'; statusColor = '#ffdc73';
+                actionBtn = `<button onclick="socket.emit('approveTest', '${st.id}')" class="btn btn-inline" style="background-color:var(--correct-color); color:#000;">최종 종료 승인</button>`;
+                progressInfo = `모든 파트 완료`;
+            } else if (st.status === 'completed') {
+                statusText = '채점 완료'; statusColor = 'var(--text-muted)';
+                actionBtn = `<span style="color:var(--text-muted); font-size:0.9em;">저장 완료</span>`;
+                progressInfo = `점수: ${st.finalData.score} / ${st.finalData.total}`;
             }
 
-            // 실시간 답안 현황 출력용
-            let recentAnswer = st.liveAnswers[`p${st.currentPart}_q${st.currentQ - 1}`] || '입력 대기중...';
-
             card.innerHTML = `
-                <h3>${st.name} <span class="student-status ${statusClass}">${statusText}</span></h3>
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px;">
-                    <div style="line-height: 1.6; color: var(--text-muted); font-size: 0.95em;">
-                        현재 위치: <span style="color:var(--text-main);">Part ${st.currentPart} - ${st.currentQ}번</span><br>
-                        선택 답안: <span style="color:var(--accent-color);">${recentAnswer}</span>
-                    </div>
+                <h3>${st.name} <span class="student-status" style="color:${statusColor};">${statusText}</span></h3>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px;">
+                    <div style="color: var(--text-muted); font-size: 0.95em;">진척도: <span style="color:var(--text-main);">${progressInfo}</span></div>
                     <div>${actionBtn}</div>
                 </div>
             `;
@@ -351,36 +354,66 @@
         });
     });
 
+    socket.on('updateRecords', (records) => {
+        globalRecords = records; // 서버로부터 최신 전체 기록 동기화
+    });
+
     // ==========================================
-    // [학생 모드 로직] 시험 흐름 제어
+    // 학생 시험 흐름
     // ==========================================
-    socket.on('testStarted', () => {
-        currentPartIndex = 0;
-        showPartDirection();
+    socket.on('testStarted', () => { currentPartIndex = 0; showPartDirection(); });
+    socket.on('testPaused', () => { clearInterval(timerInterval); document.getElementById('pause-overlay').style.display = 'flex'; });
+    socket.on('testResumed', () => { document.getElementById('pause-overlay').style.display = 'none'; startTimer(); });
+
+    // 최종 승인 떨어짐 -> 기록 저장 후 결과창
+    socket.on('testApproved', (record) => {
+        myLocalRecords.push(record);
+        localStorage.setItem('myVocabRecords', JSON.stringify(myLocalRecords));
+        
+        document.getElementById('res-score').textContent = record.score;
+        document.getElementById('res-total').textContent = record.total;
+        switchScreen('result-screen');
     });
 
-    socket.on('testPaused', () => {
-        clearInterval(timerInterval);
-        document.getElementById('pause-overlay').style.display = 'flex';
-    });
+    // 단어 철자 무작위 섞기 함수
+    function scrambleWord(word) {
+        let arr = word.split('');
+        for (let i = arr.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr.join(', ');
+    }
 
-    socket.on('testResumed', () => {
-        document.getElementById('pause-overlay').style.display = 'none';
-        startTimer(); // 정지되었던 시간부터 다시 타이머 시작
-    });
-
-    // 파트 시작 전 디렉션 화면
     function showPartDirection() {
         const partData = partsInfo[currentPartIndex];
         document.getElementById('dir-title').textContent = partData.title;
         document.getElementById('dir-desc').innerHTML = partData.instruction;
         document.getElementById('dir-time').textContent = `${Math.floor(partData.timeLimit / 60)}분`;
         
+        // 미니 퀴즈(예시) 렌더링
+        const exBox = document.getElementById('dir-example');
+        exBox.innerHTML = '';
+        if(partData.example) {
+            let exHtml = `<div class="mini-q">Q. ${partData.example.q}</div>`;
+            if (partData.example.options) {
+                partData.example.options.forEach(opt => {
+                    let hlClass = (opt === partData.example.answer) ? 'highlight' : '';
+                    exHtml += `<div class="mini-opt ${hlClass}">${opt}</div>`;
+                });
+            } else {
+                exHtml += `<div class="mini-opt highlight">답: ${partData.example.answer}</div>`;
+            }
+            exBox.innerHTML = exHtml;
+            exBox.style.display = 'block';
+        } else {
+            exBox.style.display = 'none';
+        }
+
         remainingTime = partData.timeLimit;
         switchScreen('direction-screen');
     }
 
-    // 해당 파트 문제 풀이 진입
     function startPart() {
         currentQIndex = 0;
         switchScreen('quiz-screen');
@@ -392,14 +425,13 @@
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             remainingTime--;
-            
             let m = Math.floor(remainingTime / 60).toString().padStart(2, '0');
             let s = (remainingTime % 60).toString().padStart(2, '0');
             document.getElementById('quiz-timer').textContent = `${m}:${s}`;
 
             if (remainingTime <= 0) {
                 clearInterval(timerInterval);
-                alert("해당 파트의 제한 시간이 초과되어 다음 단계로 강제 이동합니다.");
+                alert("시간이 초과되어 다음 단계로 강제 이동합니다.");
                 moveToNextPart();
             }
         }, 1000);
@@ -411,18 +443,34 @@
         const isLastQ = (currentQIndex === partData.questions.length - 1);
         
         document.getElementById('quiz-part-title').textContent = `${partData.title} (${currentQIndex + 1} / ${partData.questions.length})`;
-        document.getElementById('question-text-content').innerHTML = qData.q.replace(/\n/g, '<br>');
         
+        const qWrapper = document.getElementById('question-wrapper');
+        const qContent = document.getElementById('question-text-content');
         const optContainer = document.getElementById('options-container');
         const textInput = document.getElementById('text-answer');
         
-        optContainer.innerHTML = '';
-        textInput.style.display = 'none';
-        textInput.value = '';
+        optContainer.innerHTML = ''; textInput.style.display = 'none'; textInput.value = '';
 
+        // 단일 단어 문제 (Part 1, 2, 3, 5)는 글씨를 키우고 중앙 정렬
+        if (currentPartIndex < 3 || currentPartIndex === 4) {
+            qWrapper.classList.add('centered');
+            document.getElementById('q-number').style.display = 'none';
+        } else {
+            qWrapper.classList.remove('centered');
+            document.getElementById('q-number').style.display = 'inline';
+        }
+
+        // 스크램블 (Part 5) 동적 생성 처리
+        if (currentPartIndex === 4) { // 철자 배열 파트
+            let scrambled = scrambleWord(qData.answer);
+            qContent.innerHTML = `${qData.q} <br><span style="font-size:0.8em; color:var(--text-muted);">( ${scrambled} )</span>`;
+        } else {
+            qContent.innerHTML = qData.q.replace(/\n/g, '<br>');
+        }
+        
         const savedAnswer = userAnswers[`${currentPartIndex}_${currentQIndex}`];
 
-        // 객관식 (options 배열이 존재할 경우)
+        // 객관식 vs 주관식
         if (qData.options) {
             optContainer.style.display = 'flex';
             qData.options.forEach(opt => {
@@ -438,40 +486,27 @@
                 };
                 optContainer.appendChild(btn);
             });
-        } 
-        // 주관식 (options 배열이 없을 경우)
-        else {
+        } else {
             textInput.style.display = 'block';
             if (savedAnswer) textInput.value = savedAnswer;
             textInput.oninput = (e) => saveAnswer(e.target.value);
         }
 
-        // 이전/다음 버튼 렌더링
         document.getElementById('prev-btn').style.visibility = currentQIndex === 0 ? 'hidden' : 'visible';
-        
         const nextBtn = document.getElementById('next-btn');
         if (isLastQ) {
-            nextBtn.textContent = "현재 파트 제출";
-            nextBtn.style.color = "#000";
-            nextBtn.className = "btn btn-inline"; // 제출 느낌으로 채워진 버튼
-            nextBtn.onclick = () => {
-                if(confirm("현재 파트의 풀이를 마치고 제출하시겠습니까? (이전 파트로 돌아올 수 없습니다)")) {
-                    moveToNextPart();
-                }
-            };
+            nextBtn.textContent = "현재 파트 제출"; nextBtn.style.color = "#000"; nextBtn.className = "btn btn-inline";
+            nextBtn.onclick = () => { if(confirm("제출하시겠습니까? (수정 불가)")) moveToNextPart(); };
         } else {
-            nextBtn.textContent = "다음 문항 →";
-            nextBtn.className = "btn outline btn-inline";
+            nextBtn.textContent = "다음 문항 →"; nextBtn.className = "btn outline btn-inline"; nextBtn.style.color = "";
             nextBtn.onclick = handleNext;
         }
+
+        // 선생님 현황판을 위해 진척도만 간략히 전송
+        socket.emit('updateProgress', { part: currentPartIndex + 1, qIndex: currentQIndex + 1 });
     }
 
-    function saveAnswer(ans) {
-        userAnswers[`${currentPartIndex}_${currentQIndex}`] = ans;
-        // 서버로 실시간 전송하여 선생님 모니터링 지원
-        socket.emit('liveAnswer', { part: currentPartIndex + 1, qIndex: currentQIndex, answer: ans });
-    }
-
+    function saveAnswer(ans) { userAnswers[`${currentPartIndex}_${currentQIndex}`] = ans; }
     function handleNext() { currentQIndex++; renderQuestion(); }
     function handlePrev() { currentQIndex--; renderQuestion(); }
 
@@ -481,10 +516,113 @@
         if (currentPartIndex < partsInfo.length) {
             showPartDirection();
         } else {
-            // 시험 최종 종료
-            switchScreen('result-screen');
-            socket.emit('finishTest'); // 서버에 종료 상태 알림 (필요시 구현)
+            // 모든 파트 종료 시 자동 채점 후 서버 전송 (승인 대기)
+            let details = [];
+            let score = 0; let total = 0;
+            
+            partsInfo.forEach((part, pIdx) => {
+                part.questions.forEach((qData, qIdx) => {
+                    let uAns = userAnswers[`${pIdx}_${qIdx}`] || "미입력";
+                    // 객관식 앞의 (A) 등 기호를 제외하고 순수 텍스트(알파벳 등) 비교를 위해 포맷 통일
+                    let cleanUser = uAns.trim().toLowerCase();
+                    let cleanCorrect = qData.answer.trim().toLowerCase();
+                    
+                    let isCorrect = (cleanUser === cleanCorrect);
+                    if(isCorrect) score++;
+                    total++;
+                    details.push({
+                        partTitle: part.title,
+                        q: qData.q,
+                        userAns: uAns,
+                        correctAns: qData.answer,
+                        isCorrect: isCorrect
+                    });
+                });
+            });
+
+            socket.emit('submitTest', { score, total, details });
+            switchScreen('waiting-approval-screen');
         }
+    }
+
+    // ==========================================
+    // 기록 열람 (오답 노트) 로직
+    // ==========================================
+    function showStudentRecords() {
+        document.getElementById('records-title').textContent = "나의 과거 기록";
+        renderRecordList(myLocalRecords, 'student');
+        switchScreen('records-screen');
+    }
+
+    function showTeacherRecords() {
+        document.getElementById('records-title').textContent = "모든 학생 제출 기록";
+        renderRecordList(globalRecords, 'teacher');
+        switchScreen('records-screen');
+    }
+
+    function renderRecordList(records, role) {
+        const list = document.getElementById('records-list');
+        list.innerHTML = '';
+        if (records.length === 0) {
+            list.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:30px;">보관된 기록이 없습니다.</p>';
+            return;
+        }
+        
+        // 최신순 정렬
+        [...records].reverse().forEach(rec => {
+            const item = document.createElement('div');
+            item.className = 'record-item';
+            
+            let nameTag = role === 'teacher' ? `<strong style="color:var(--accent-color); font-size:1.1em;">[${rec.studentName}]</strong><br>` : '';
+
+            item.innerHTML = `
+                <div>
+                    ${nameTag}
+                    <span style="color:var(--text-muted); font-size:0.85em;">${rec.date}</span>
+                    <div style="margin-top:8px;">점수: <span style="color:var(--correct-color); font-weight:bold;">${rec.score}</span> / ${rec.total}</div>
+                </div>
+                <button class="btn outline btn-inline" style="padding:10px; font-size:0.9em;" onclick="openReview(${rec.id}, '${role}')">상세 보기</button>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    function openReview(recordId, role) {
+        const records = role === 'teacher' ? globalRecords : myLocalRecords;
+        const record = records.find(r => r.id === recordId);
+        
+        document.getElementById('review-title').textContent = `${record.studentName || '나'}의 오답노트`;
+        const container = document.getElementById('review-content');
+        container.innerHTML = '';
+
+        record.details.forEach((item, idx) => {
+            const card = document.createElement('div');
+            card.className = 'review-q-card';
+            card.style.borderLeft = item.isCorrect ? '4px solid var(--correct-color)' : '4px solid var(--wrong-color)';
+            
+            const badgeClass = item.isCorrect ? 'badge correct' : 'badge wrong';
+            card.innerHTML = `
+                <div style="color:var(--accent-color); font-size:0.85em; margin-bottom:10px;">[${item.partTitle}]</div>
+                <div style="margin-bottom:15px; line-height:1.5;">
+                    <span class="${badgeClass}">${item.isCorrect ? '정답' : '오답'}</span>
+                    <strong style="font-size:1.1em; margin-left:8px;">Q${idx+1}. ${item.q.replace(/\n/g, '<br>')}</strong>
+                </div>
+                <div style="font-size:0.95em; color:var(--text-muted);">
+                    나의 선택: <strong style="color:var(--text-main);">${item.userAns}</strong><br>
+                    실제 정답: <strong style="color:var(--correct-color);">${item.correctAns}</strong>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        switchScreen('review-screen');
+    }
+
+    function viewMyRecentRecord() {
+        if(myLocalRecords.length > 0) openReview(myLocalRecords[myLocalRecords.length-1].id, 'student');
+    }
+
+    function goBackFromRecords() {
+        switchScreen(currentRole === 'teacher' ? 'teacher-screen' : 'login-screen');
     }
 </script>
 </body>
