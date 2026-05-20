@@ -62,7 +62,7 @@ const partsInfo = [
     {
         title: "Part 5. 철자 배열",
         timeLimit: 540,
-        instruction: "제시된 한글 뜻과 무작위로 섞인 알파벳 힌트를 보고, 올바른 영단어 스펠링을 입력창에 타이핑하시오.",
+        instruction: "제시된 한글 뜻과 무작위로 섞인 알파벳 단서를 보고, 올바른 영단어 철자를 입력창에 입력하시오.",
         example: {
             q: "할당하다, 배정하다 <br><span style='color:#a38d73;'>( l, o, e, c, a, l, a, t )</span>",
             answer: "allocate" // options 속성을 제거하여 자동으로 주관식 입력창이 생성됩니다.
@@ -79,7 +79,7 @@ const partsInfo = [
     {
         title: "Part 6. 철자 입력",
         timeLimit: 960,
-        instruction: "해석과 첫 글자 힌트를 보고, 문맥에 맞는 단어를 <b>완전한 스펠링</b>으로 타이핑하시오.",
+        instruction: "해석과 첫 글자 단서를 보고, 문맥에 맞는 단어를 <b>정확한 철자로</b>로 입력하시오.",
         example: {
             q: "After ten years in the marketing department, Ms. Quinn was finally p----- to director.\n(해석: 마케팅 부서에서 10년을 보낸 후, 퀸 씨는 마침내 이사로 승진되었습니다.)",
             answer: "promoted"
