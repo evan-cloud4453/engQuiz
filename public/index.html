@@ -825,20 +825,35 @@ function moveToNextPart(isForced = false) {
 // 기록 열람 및 삭제 로직
 // =====================================
 function showStudentRecords() {
-    const nameInput = document.getElementById('student-name').value.trim();
-    if(!nameInput) {
-        customAlert("이름을 먼저 입력한 후 내 기록을 열람해주세요.");
+    if(!myName) {
+        customAlert("먼저 대기실에 입장한 후 기록을 열람해주세요.");
         return;
     }
-    // 학생 식별 (이름 일치)
-    const myRecords = myLocalRecords.filter(r => r.studentName === nameInput);
-    document.getElementById('records-title').textContent = `${nameInput}님의 기록`;
+    const myRecords = myLocalRecords.filter(r => r.studentName === myName);
+    document.getElementById('records-title').textContent = `${myName}님의 기록`;
     
     const delArea = document.getElementById('record-delete-area');
-    delArea.innerHTML = `<button class="btn outline btn-inline" style="padding: 5px 15px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="clearMyLocalRecords('${nameInput}')">내 기록 전체 삭제</button>`;
+    delArea.innerHTML = `<button class="btn outline btn-inline" style="padding: 5px 15px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="clearMyLocalRecords('${myName}')">내 기록 전체 삭제</button>`;
 
     renderRecordList(myRecords, 'student');
     switchScreen('records-screen');
+}
+
+// 오답노트에서 돌아갈 때 메인이 아닌 '대기실'로 이동하도록 수정
+function goBackFromRecords() {
+    switchScreen(currentRole === 'teacher' ? 'teacher-screen' : 'waiting-screen');
+}
+
+// 학생 로그아웃(메인으로 나가기) 기능 추가
+function logoutStudent() {
+    myName = '';
+    currentRole = '';
+    document.getElementById('mode-badge').style.display = 'none'; // 뱃지 숨김 (버그 해결)
+    document.getElementById('student-name').value = '';
+    
+    socket.disconnect(); // 서버에 나갔음을 알림
+    socket.connect();    // 재연결 대기
+    switchScreen('home-screen');
 }
 
 function showTeacherRecords() {
