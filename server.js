@@ -22,7 +22,7 @@ io.on('connection', (socket) => {
                 teacherSocketId = socket.id;
                 socket.emit('loginSuccess', { role: 'teacher' });
                 io.to(teacherSocketId).emit('updateStudents', students);
-                io.to(teacherSocketId).emit('updateRecords', testRecords);
+                io.emit('updateRecords', testRecords);
             } else {
                 socket.emit('loginFail', '비밀번호가 틀렸습니다.');
             }
@@ -42,7 +42,10 @@ io.on('connection', (socket) => {
                 currentQ: 1,
                 finalData: null
             };
+            
             socket.emit('loginSuccess', { role: 'student', name: name });
+            socket.emit('updateRecords', testRecords);
+            
             if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
         }
     });
@@ -101,7 +104,7 @@ io.on('connection', (socket) => {
             io.to(studentId).emit('testApproved', record);
             if (teacherSocketId) {
                 io.to(teacherSocketId).emit('updateStudents', students);
-                io.to(teacherSocketId).emit('updateRecords', testRecords);
+                io.emit('updateRecords', testRecords);
             }
         }
     });
@@ -110,7 +113,7 @@ io.on('connection', (socket) => {
     socket.on('deleteRecord', (recordId) => {
         if (socket.id === teacherSocketId) {
             testRecords = testRecords.filter(r => r.id !== recordId);
-            io.to(teacherSocketId).emit('updateRecords', testRecords);
+            io.emit('updateRecords', testRecords);
         }
     });
     
