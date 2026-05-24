@@ -175,7 +175,14 @@
             body { padding: 5px; min-height: 100vh; }
             .app-container { 
                 padding: 60px 15px 25px 15px; /* 상단 뱃지 공간 확보 */
-                width: 95%; margin: 0 auto; 
+                width: 95%; margin: 0 auto;
+                backdrop-filter: none; /* ★ 추가: 모바일 키보드 포커스 버그 해결 */
+                -webkit-backdrop-filter: none; /* ★ 추가 */
+            }
+
+            .input-field {
+                -webkit-appearance: none; /* ★ 추가: iOS 터치 지연 방지 */
+                transform: translateZ(0); /* ★ 추가: 한글 조합(IME) 오류 방지 */
             }
             
             /* 글자 크기를 화면 너비에 맞춰 자동 조절 (clamp 활용) */
