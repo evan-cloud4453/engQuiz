@@ -455,7 +455,7 @@ let currentPartIndex = 0; let currentQIndex = 0; let remainingTime = 0;
 let timerInterval = null; let userAnswers = {}; 
 
 let globalRecords = []; 
-let myLocalRecords = JSON.parse(localStorage.getItem('myVocabRecords')) || []; 
+// let myLocalRecords = JSON.parse(localStorage.getItem('myVocabRecords')) || []; 
 
 function switchScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -564,8 +564,6 @@ socket.on('testPaused', () => { clearInterval(timerInterval); document.getElemen
 socket.on('testResumed', () => { document.getElementById('pause-overlay').style.display = 'none'; startTimer(); });
 
 socket.on('testApproved', (record) => {
-    myLocalRecords.push(record);
-    localStorage.setItem('myVocabRecords', JSON.stringify(myLocalRecords));
     document.getElementById('res-score').textContent = record.score;
     document.getElementById('res-total').textContent = record.total;
     switchScreen('result-screen');
@@ -797,14 +795,15 @@ function moveToNextPart(isForced = false) {
 // =====================================
 function showStudentRecords() {
     if(!myName) {
-        customAlert("먼저 대기실에 입장한 후 기록을 열람해주세요.");
+        customAlert("이름을 먼저 입력한 후 내 기록을 열람해주세요.");
         return;
     }
-    const myRecords = myLocalRecords.filter(r => r.studentName === myName);
+    // ★ 로컬이 아닌 서버 데이터(globalRecords)에서 내 기록만 필터링합니다.
+    const myRecords = globalRecords.filter(r => r.studentName === myName);
     document.getElementById('records-title').textContent = `${myName}님의 기록`;
     
-    const delArea = document.getElementById('record-delete-area');
-    delArea.innerHTML = `<button class="btn outline btn-inline" style="padding: 5px 15px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="clearMyLocalRecords('${myName}')">내 기록 전체 삭제</button>`;
+    // ★ 학생은 기록 삭제를 할 수 없도록 삭제 버튼 영역을 비워둡니다.
+    document.getElementById('record-delete-area').innerHTML = '';
 
     renderRecordList(myRecords, 'student');
     switchScreen('records-screen');
@@ -822,30 +821,8 @@ function goBackFromRecords() {
 
 // 학생 로그아웃(메인으로 나가기) 기능 추가
 function logoutStudent() {
-    // 1. 서버에 로그아웃 요청 (즉시 접속 해제 처리)
-    socket.emit('logout');
-
-    // 2. 수험자 정보 초기화 및 좌측 상단 뱃지 완벽 숨김
-    myName = '';
-    currentRole = '';
-    const badge = document.getElementById('mode-badge');
-    if (badge) {
-        badge.style.display = 'none';
-        badge.textContent = ''; 
-    }
-
-    // 3. 입력 폼 초기화 및 메인 버튼 복구
-    const nameInput = document.getElementById('student-name');
-    if (nameInput) nameInput.value = '';
-    
-    document.getElementById('student-form').style.display = 'none';
-    document.getElementById('teacher-form').style.display = 'none';
-    
-    const mainBtns = document.getElementById('main-menu-btns');
-    if (mainBtns) mainBtns.style.display = 'block';
-
-    // 4. 메인 화면으로 이동
-    switchScreen('home-screen');
+    // 모든 상태와 소켓 연결을 가장 완벽하게 초기화하는 방법
+    location.reload(); 
 }
 
 function showTeacherRecords() {
@@ -917,7 +894,7 @@ function deleteServerRecord(id) {
 }
 
 function openReview(recordId, role) {
-    const records = role === 'teacher' ? globalRecords : myLocalRecords;
+    const records = globalRecords;
     const record = records.find(r => r.id === recordId);
     
     document.getElementById('review-title').textContent = `${record.studentName || '나'}의 오답노트`;
@@ -969,7 +946,7 @@ function openReview(recordId, role) {
 
 function viewMyRecentRecord() {
     const nameInput = document.getElementById('student-name').value.trim();
-    const myRecords = myLocalRecords.filter(r => r.studentName === nameInput);
+    const myRecords = globalRecords.filter(r => r.studentName === myName);
     if(myRecords.length > 0) openReview(myRecords[myRecords.length-1].id, 'student');
 }
 
