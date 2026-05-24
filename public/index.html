@@ -389,6 +389,8 @@
 
 <script src="/socket.io/socket.io.js"></script>
 
+<script src="data.js"></script>
+
 <script>
 // =====================================
 // 1. 오디오 로직 (원본 유지)
@@ -397,7 +399,7 @@ const bgm = document.getElementById('bgm');
 const quizBgm = document.getElementById('quiz-bgm');
 const soundCorrect = document.getElementById('sound-correct');
 const soundWrong = document.getElementById('sound-wrong');
-
+    
 let isBGMMuted = false; let isSFXMuted = false; let bgmStarted = false;
 bgm.volume = 0.3; quizBgm.volume = 0.3; soundCorrect.volume = 0.3; soundWrong.volume = 0.3;
 
