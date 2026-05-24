@@ -846,21 +846,26 @@ function goBackFromRecords() {
 
 // 학생 로그아웃(메인으로 나가기) 기능 추가
 function logoutStudent() {
-        // 1. 수험자 정보 초기화 및 뱃지 숨김
+        // 1. 서버에 명시적으로 로그아웃 알림 (데이터 즉각 삭제)
+        socket.emit('logout');
+
+        // 2. 수험자 정보 초기화 및 뱃지 완벽 숨김
         myName = '';
         currentRole = '';
-        document.getElementById('mode-badge').style.display = 'none'; 
-        document.getElementById('student-name').value = ''; 
-        
-        // 2. 서버와의 소켓 연결을 끊고 새로 연결 (서버의 대기열에서 완전 삭제)
-        socket.disconnect(); 
-        socket.connect();    
-        
-        // 3. 입력 폼 숨기고 메인 화면으로 이동
+        const badge = document.getElementById('mode-badge');
+        badge.style.display = 'none';
+        badge.textContent = ''; 
+
+        // 3. 입력 폼 초기화 및 메인 버튼 복구
+        document.getElementById('student-name').value = '';
         document.getElementById('student-form').style.display = 'none';
         document.getElementById('teacher-form').style.display = 'none';
         
-        switchScreen('login-screen'); 
+        const mainBtns = document.getElementById('main-menu-btns');
+        if (mainBtns) mainBtns.style.display = 'block';
+
+        // 4. 메인 화면으로 완벽히 이동
+        switchScreen('home-screen');
     }
 
 function showTeacherRecords() {
