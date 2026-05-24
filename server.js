@@ -115,19 +115,17 @@ io.on('connection', (socket) => {
     });
     
     // 선생님: 전체 기록 삭제 기능
-    socket.on('deleteAllRecords', () => {
-        if (socket.id === teacherSocketId) {
-            testRecords = [];
-            io.to(teacherSocketId).emit('updateRecords', testRecords);
+    socket.on('logout', () => {
+        if (students[socket.id]) {
+            delete students[socket.id]; // 서버 대기열에서 즉시 삭제
+            if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
         }
     });
 
     // 로그아웃 처리
-    socket.on('logout', () => {
-        if (socket.id === teacherSocketId) {
-            teacherSocketId = null;
-        } else if (students[socket.id]) {
-            delete students[socket.id];
+socket.on('logout', () => {
+        if (students[socket.id]) {
+            delete students[socket.id]; // 서버 대기열에서 즉시 삭제
             if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
         }
     });
