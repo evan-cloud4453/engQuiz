@@ -809,14 +809,8 @@ function showStudentRecords() {
     switchScreen('records-screen');
 }
 
-// 오답노트에서 돌아갈 때 메인이 아닌 '대기실'로 이동하도록 수정
-// [수정할 함수]
 function goBackFromRecords() {
-    if (currentRole === 'teacher') {
-        switchScreen('teacher-screen');
-    } else {
-        switchScreen('waiting-screen'); // 학생은 무조건 대기실로 복귀
-    }
+    switchScreen(currentRole === 'teacher' ? 'teacher-screen' : 'waiting-screen');
 }
 
 // 학생 로그아웃(메인으로 나가기) 기능 추가
