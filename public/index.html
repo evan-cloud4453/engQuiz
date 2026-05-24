@@ -846,27 +846,31 @@ function goBackFromRecords() {
 
 // 학생 로그아웃(메인으로 나가기) 기능 추가
 function logoutStudent() {
-        // 1. 서버에 명시적으로 로그아웃 알림 (데이터 즉각 삭제)
-        socket.emit('logout');
+    // 1. 서버에 로그아웃 요청 (즉시 접속 해제 처리)
+    socket.emit('logout');
 
-        // 2. 수험자 정보 초기화 및 뱃지 완벽 숨김
-        myName = '';
-        currentRole = '';
-        const badge = document.getElementById('mode-badge');
+    // 2. 수험자 정보 초기화 및 좌측 상단 뱃지 완벽 숨김
+    myName = '';
+    currentRole = '';
+    const badge = document.getElementById('mode-badge');
+    if (badge) {
         badge.style.display = 'none';
         badge.textContent = ''; 
-
-        // 3. 입력 폼 초기화 및 메인 버튼 복구
-        document.getElementById('student-name').value = '';
-        document.getElementById('student-form').style.display = 'none';
-        document.getElementById('teacher-form').style.display = 'none';
-        
-        const mainBtns = document.getElementById('main-menu-btns');
-        if (mainBtns) mainBtns.style.display = 'block';
-
-        // 4. 메인 화면으로 완벽히 이동
-        switchScreen('home-screen');
     }
+
+    // 3. 입력 폼 초기화 및 메인 버튼 복구
+    const nameInput = document.getElementById('student-name');
+    if (nameInput) nameInput.value = '';
+    
+    document.getElementById('student-form').style.display = 'none';
+    document.getElementById('teacher-form').style.display = 'none';
+    
+    const mainBtns = document.getElementById('main-menu-btns');
+    if (mainBtns) mainBtns.style.display = 'block';
+
+    // 4. 메인 화면으로 이동
+    switchScreen('home-screen');
+}
 
 function showTeacherRecords() {
     document.getElementById('records-title').textContent = "모든 학생 제출 기록";
