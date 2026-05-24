@@ -943,10 +943,6 @@ function viewMyRecentRecord() {
     const myRecords = globalRecords.filter(r => r.studentName === myName);
     if(myRecords.length > 0) openReview(myRecords[myRecords.length-1].id, 'student');
 }
-
-function goBackFromRecords() {
-    switchScreen(currentRole === 'teacher' ? 'teacher-screen' : 'home-screen');
-}
 </script>
 </body>
 </html>
