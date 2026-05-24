@@ -8,24 +8,21 @@
     <title>CBT 어휘 평가 시스템</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* =========================================
-           고대 이집트 다크 테마 변수 설정 (원본 유지)
-           ========================================= */
         :root {
-            --container-bg: rgba(26, 20, 16, 0.92);
-            --text-main: #e8dcc5;
-            --text-muted: #a38d73;
-            --accent-color: #d4af37;
-            --accent-hover: #b5952f;
-            --border-color: #5c4731;
-            --btn-bg: #241c16;
-            --btn-hover: #3b2d23;
-            --correct-bg: rgba(27, 51, 32, 0.8);
-            --correct-color: #81c784;
-            --wrong-bg: rgba(59, 26, 26, 0.8);
-            --wrong-color: #e57373;
-            --unsolved-color: #fdd835; /* 미해결 문제 노란색 */
-            --shadow: 0 15px 35px rgba(0,0,0,0.8);
+            --container-bg: rgba(10, 15, 25, 0.94); /* 더 어둡고 푸른 심연색 */
+            --text-main: #e2d2a4; /* 빛바랜 양장피색 */
+            --text-muted: #8899ac;
+            --accent-color: #3fdbff; /* 마법 서광 (청록색) */
+            --accent-hover: #00bfff;
+            --border-color: #34495e;
+            --btn-bg: #1c2833;
+            --btn-hover: #2c3e50;
+            --correct-bg: rgba(39, 174, 96, 0.2);
+            --correct-color: #2ecc71;
+            --wrong-bg: rgba(192, 57, 43, 0.2);
+            --wrong-color: #e74c3c;
+            --unsolved-color: #fdd835;
+            --shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
         body {
@@ -37,8 +34,9 @@
             justify-content: center;
             align-items: center;
             min-height: 90vh;
-            background-color: #0d0a08;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(10, 5, 0, 0.85)), url('https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/555920/ss_1c06d2262e79f8d4500ee9ec8835d7bd0eadf2e0.1920x1080.jpg?t=1772366087');
+            background-color: #05070a;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(5, 10, 20, 0.9)), 
+                              url('https://external-preview.redd.it/official-wallpaper-2880x1620-source-wizarding-world-v0-jvaZupb-VKbTzvPrfXSjhWPysA_WKUrffk0IN0clSuo.jpeg?width=1080&crop=smart&auto=webp&s=c80c337f583aef9065d4f722b5873eb839255216');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -530,11 +528,13 @@ socket.on('loginSuccess', (data) => {
     badge.style.display = 'block';
 
     if (currentRole === 'teacher') {
-        badge.textContent = '감독관 모드'; badge.className = 'mode-teacher';
+        badge.textContent = '감독관 모드'; 
+        badge.className = 'mode-teacher';
         switchScreen('teacher-screen');
     } else {
         myName = data.name;
-        badge.textContent = `수험자: ${myName}`; badge.className = 'mode-student';
+        badge.textContent = `수험자: ${myName}`; 
+        badge.className = 'mode-student';
         switchScreen('waiting-screen');
     }
 });
