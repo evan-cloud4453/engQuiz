@@ -122,6 +122,16 @@ io.on('connection', (socket) => {
         }
     });
 
+    // 로그아웃 처리
+    socket.on('logout', () => {
+        if (socket.id === teacherSocketId) {
+            teacherSocketId = null;
+        } else if (students[socket.id]) {
+            delete students[socket.id];
+            if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
+        }
+    });
+
     socket.on('disconnect', () => {
         if (socket.id === teacherSocketId) {
             teacherSocketId = null;
