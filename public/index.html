@@ -792,6 +792,7 @@ function moveToNextPart(isForced = false) {
                 });
             });
         });
+        console.log("서버 전송 데이터:", { score, total, details }); 
         socket.emit('submitTest', { score, total, details });
         switchScreen('waiting-approval-screen');
     }
