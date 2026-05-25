@@ -2,6 +2,12 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 
+const fs = require('fs');
+const RECORDS_FILE = 'records.json';
+if (fs.existsSync(RECORDS_FILE)) {
+    testRecords = JSON.parse(fs.readFileSync(RECORDS_FILE, 'utf8'));
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
@@ -100,6 +106,7 @@ io.on('connection', (socket) => {
                 details: st.finalData.details
             };
             testRecords.push(record);
+            fs.writeFileSync(RECORDS_FILE, JSON.stringify(testRecords, null, 2));
 
             io.to(studentId).emit('testApproved', record);
             if (teacherSocketId) {
@@ -113,15 +120,19 @@ io.on('connection', (socket) => {
     socket.on('deleteRecord', (recordId) => {
         if (socket.id === teacherSocketId) {
             testRecords = testRecords.filter(r => r.id !== recordId);
+            fs.writeFileSync(RECORDS_FILE, JSON.stringify(testRecords, null, 2));
             io.emit('updateRecords', testRecords);
         }
     });
-    
-    // 선생님: 전체 기록 삭제 기능
-    socket.on('logout', () => {
-        if (students[socket.id]) {
-            delete students[socket.id]; // 서버 대기열에서 즉시 삭제
-            if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
+
+    socket.on('deleteAllRecords', () => {
+        if (socket.id === teacherSocketId) {
+            testRecords = [];
+            
+            // ★ 파일로 영구 저장
+            fs.writeFileSync(RECORDS_FILE, JSON.stringify(testRecords, null, 2));
+            
+            io.emit('updateRecords', testRecords);
         }
     });
 
