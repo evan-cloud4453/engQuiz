@@ -5,7 +5,7 @@ const fs = require('fs');
 const mongoose = require('mongoose'); // ★ 추가
 
 // 1. DB 연결 (복사한 주소를 안에 넣으세요)
-mongoose.connect('mongodb+srv://dbUser:admin123@cluster0.kkrujva.mongodb.net/?appName=Cluster0');
+mongoose.connect('mongodb+srv://dbUser:admin123@cluster0.kkrujva.mongodb.net/myQuizDB?appName=Cluster0');
 
 // 2. 데이터 구조(Schema) 설정
 const recordSchema = new mongoose.Schema({
