@@ -85,19 +85,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 2. DB에 저장
-    const newQuiz = new Quiz({
-        name: quizData.name,
-        data: fullQuizData
-    });
-    
-    await newQuiz.save();
-    
-    // 3. 전체 시험지 목록 업데이트
-    quizzes = await Quiz.find({});
-    io.emit('updateQuizzes', quizzes);
-});
-
     // 퀴즈 업로드, 삭제, 활성화 이벤트
     // ★ 엑셀 시험지 업로드 (DB 저장)
     socket.on('uploadQuiz', async (quizData) => { // async 추가
