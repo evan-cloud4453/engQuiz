@@ -70,7 +70,7 @@ io.on('connection', (socket) => {
     socket.on('startTest', (studentId) => {
         if (students[studentId]) {
             students[studentId].status = 'testing';
-            io.to(studentId).emit('testStarted', activeQuizData);
+            io.to(studentId).emit('testStarted', activeQuizData || null);
             if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
         }
     });
