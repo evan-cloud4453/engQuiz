@@ -2,20 +2,32 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const fs = require('fs');
+const mongoose = require('mongoose'); // ★ 추가
+
+// 1. DB 연결 (복사한 주소를 안에 넣으세요)
+mongoose.connect('mongodb+srv://dbUser:admin123@cluster0.kkrujva.mongodb.net/?appName=Cluster0');
+
+// 2. 데이터 구조(Schema) 설정
+const recordSchema = new mongoose.Schema({
+    id: Number,
+    studentName: String,
+    date: String,
+    score: Number,
+    total: Number,
+    details: Array
+});
+const Record = mongoose.model('Record', recordSchema);
 
 let testRecords = []; 
 let quizzes = [];
 let activeQuizData = null; 
 
-const RECORDS_FILE = 'records.json';
-if (fs.existsSync(RECORDS_FILE)) {
-    testRecords = JSON.parse(fs.readFileSync(RECORDS_FILE, 'utf8'));
-}
+// (주의: 기존에 있던 RECORDS_FILE 읽어오는 코드는 지웠습니다)
 
 const QUIZZES_FILE = 'quizzes.json';
 if (fs.existsSync(QUIZZES_FILE)) {
     quizzes = JSON.parse(fs.readFileSync(QUIZZES_FILE, 'utf8'));
-    if (quizzes.length > 0) activeQuizData = quizzes[0].data; // 기본값
+    if (quizzes.length > 0) activeQuizData = quizzes[0].data;
 }
 
 const app = express();
@@ -130,11 +142,11 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('approveTest', (studentId) => {
+    socket.on('approveTest', async (studentId) => { 
         let st = students[studentId];
         if (st && st.status === 'waiting_approval') {
             st.status = 'completed';
-            const record = {
+            const recordData = {
                 id: Date.now() + Math.floor(Math.random() * 1000),
                 studentName: st.name,
                 date: new Date().toLocaleString(),
@@ -142,10 +154,14 @@ io.on('connection', (socket) => {
                 total: st.finalData.total,
                 details: st.finalData.details
             };
-            testRecords.push(record);
-            fs.writeFileSync(RECORDS_FILE, JSON.stringify(testRecords, null, 2));
 
-            io.to(studentId).emit('testApproved', record);
+            // ★ 기존 fs.writeFileSync 대신 DB에 저장!
+            const newRecord = new Record(recordData);
+            await newRecord.save(); 
+
+            testRecords.push(recordData);
+
+            io.to(studentId).emit('testApproved', recordData);
             if (teacherSocketId) {
                 io.to(teacherSocketId).emit('updateStudents', students);
                 io.emit('updateRecords', testRecords);
@@ -192,6 +208,15 @@ socket.on('logout', () => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+
+// ★ 4. 기록 불러오기 (서버 시작 시)
+const startServer = async () => {
+    testRecords = await Record.find({}); // DB에서 모든 기록 싹 가져오기
+    
+    server.listen(PORT, () => {
+        console.log(`Server listening on port ${PORT}`);
+    });
+};
+
+startServer();
