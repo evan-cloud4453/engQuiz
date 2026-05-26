@@ -327,7 +327,13 @@
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <input type="text" id="quiz-name-input" class="input-field" style="margin-bottom:0;" placeholder="새 시험지 이름 (예: 1주차 모의고사)">
                 <input type="file" id="quiz-file-input" accept=".xlsx" style="display:none;" onchange="handleFileUpload(event)">
-                <button class="btn btn-inline" style="padding: 15px;" onclick="document.getElementById('quiz-file-input').click()">엑셀 업로드</button>
+                
+                <button class="btn btn-inline" style="padding: 15px;" onclick="
+                    if(!document.getElementById('quiz-name-input').value.trim()) { 
+                        customAlert('시험지 이름을 먼저 적어주세요.'); 
+                    } else { 
+                        document.getElementById('quiz-file-input').click(); 
+                    }">엑셀 업로드</button>
             </div>
             <p style="color:var(--text-muted); font-size:0.85em; margin-bottom:10px;">※ 학생들에게 제공할 시험지의 [활성화] 버튼을 반드시 눌러주세요.</p>
             <div id="quiz-list" class="student-grid" style="max-height: 250px;"></div>
