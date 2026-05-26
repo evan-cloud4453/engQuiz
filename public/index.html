@@ -225,6 +225,7 @@
             .record-item .btn { width: 100%; text-align: center; margin-top: 5px; padding: 12px 0 !important; }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -320,18 +321,16 @@
             <button class="btn outline btn-inline" style="padding: 8px 15px;" onclick="location.reload()">로그아웃</button>
         </div>
         <div id="student-list" class="student-grid"></div>
-    </div>
-
-    <div id="direction-screen" class="screen">
-        <h2 id="dir-title" style="font-size: 2em; margin-bottom: 20px;">Part 1</h2>
-        <div class="direction-box">
-            <p id="dir-desc" style="font-size: 1.1em; text-align: center;">안내문</p>
-            <div id="dir-example" class="mini-quiz"></div>
-            <p style="color:var(--wrong-color); font-weight:bold; font-size: 1em; text-align: center; margin-top:20px;">※ 시간 초과 시 다음 파트가 자동 진행됩니다. (일시정지 불가)</p>
-            <p style="font-size: 1.2em; text-align: center; color: var(--accent-color);">제한 시간: <span id="dir-time" style="font-weight: bold;"></span></p>
-        </div>
-        <div style="max-width: 300px; margin: 0 auto;">
-            <button class="btn" onclick="startPart()">시험 시작하기</button>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px dashed var(--border-color);">
+            <h3 style="text-align:left; color:var(--text-main);">📚 문제 관리소</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="quiz-name-input" class="input-field" style="margin-bottom:0;" placeholder="새 시험지 이름 (예: 1주차 모의고사)">
+                <input type="file" id="quiz-file-input" accept=".xlsx" style="display:none;" onchange="handleFileUpload(event)">
+                <button class="btn btn-inline" style="padding: 15px;" onclick="document.getElementById('quiz-file-input').click()">엑셀 업로드</button>
+            </div>
+            <p style="color:var(--text-muted); font-size:0.85em; margin-bottom:10px;">※ 학생들에게 제공할 시험지의 [활성화] 버튼을 반드시 눌러주세요.</p>
+            <div id="quiz-list" class="student-grid" style="max-height: 250px;"></div>
         </div>
     </div>
 
@@ -566,7 +565,15 @@ socket.on('updateStudents', (students) => {
 });
 
 socket.on('updateRecords', (records) => { globalRecords = records; });
-socket.on('testStarted', () => { currentPartIndex = 0; showPartDirection(); });
+socket.on('testStarted', (activeQuizData) => { 
+    if(!activeQuizData) { 
+        customAlert("현재 배정된 시험지가 없습니다. 감독관에게 문의하세요."); 
+        return; 
+    }
+    partsInfo = activeQuizData; // 서버에서 받은 활성화 시험지로 덮어쓰기
+    currentPartIndex = 0; 
+    showPartDirection(); 
+});
 socket.on('testPaused', () => { clearInterval(timerInterval); document.getElementById('pause-overlay').style.display = 'flex'; });
 socket.on('testResumed', () => { document.getElementById('pause-overlay').style.display = 'none'; startTimer(); });
 
@@ -951,6 +958,99 @@ function viewMyRecentRecord() {
     const myRecords = globalRecords.filter(r => r.studentName === myName);
     if(myRecords.length > 0) openReview(myRecords[myRecords.length-1].id, 'student');
 }
+
+// =====================================
+// 5. 엑셀 업로드 및 문제 관리 알고리즘
+// =====================================
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    const quizName = document.getElementById('quiz-name-input').value.trim();
+    
+    if (!quizName) { customAlert("시험지 이름을 먼저 입력해주세요."); event.target.value = ''; return; }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(firstSheet, {defval: ""}); 
+
+        // 알고리즘: 형식 변환 및 공백 예외 처리
+        const parsedQuiz = parseExcelToQuiz(rows);
+
+        if (!parsedQuiz) {
+            customAlert("업로드 불가: 엑셀 파일 형식이 손상되었거나,<br>특정 Part의 문제가 완전히 누락되었습니다.");
+        } else {
+            socket.emit('uploadQuiz', { id: Date.now(), name: quizName, data: parsedQuiz });
+            customAlert(`[${quizName}] 시험지가 성공적으로 저장되었습니다.`);
+            document.getElementById('quiz-name-input').value = '';
+        }
+        event.target.value = ''; 
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function parseExcelToQuiz(rows) {
+    let parts = [
+        { title: "Part 1. 단순 의미 파악", timeLimit: 480, instruction: "제시된 영단어의 정확한 뜻을 고르시오.", questions: [] },
+        { title: "Part 2. 동의어/반의어 파악", timeLimit: 420, instruction: "짝지어진 단어의 관계가 나머지 셋과 다른 하나를 고르시오.", questions: [] },
+        { title: "Part 3. 품사/의미 파악", timeLimit: 300, instruction: "제시된 단어의 정확한 품사와 뜻을 고르시오.", questions: [] },
+        { title: "Part 4. 실전 문맥 파악", timeLimit: 900, instruction: "다음 문장의 빈칸에 들어갈 가장 알맞은 어휘를 고르시오.", questions: [] },
+        { title: "Part 5. 철자 배열 (Scramble)", timeLimit: 540, instruction: "제시된 한글 뜻과 무작위 알파벳 단서를 보고 올바른 철자를 타이핑 하시오.", questions: [] },
+        { title: "Part 6. 철자 입력 주관식", timeLimit: 960, instruction: "해석과 첫 글자 단서를 보고 문맥에 맞는 단어를 입력하시오.", questions: [] }
+    ];
+
+    rows.forEach(row => {
+        let cleanRow = {};
+        for(let key in row) cleanRow[key.trim()] = String(row[key]).trim();
+        if (!cleanRow.Question || !cleanRow.Answer || !cleanRow.Part) return;
+
+        const pIndex = parseInt(cleanRow.Part) - 1;
+        if (pIndex >= 0 && pIndex < 6) {
+            let qObj = { q: cleanRow.Question, answer: cleanRow.Answer };
+            if (pIndex < 4) { 
+                qObj.options = [cleanRow.OptionA, cleanRow.OptionB, cleanRow.OptionC, cleanRow.OptionD].filter(Boolean);
+            }
+            parts[pIndex].questions.push(qObj);
+        }
+    });
+
+    // 안전장치: 한 파트라도 문제가 0개면 에러 처리
+    for (let i = 0; i < 6; i++) {
+        if (parts[i].questions.length === 0) return null; 
+    }
+    return parts;
+}
+
+socket.on('updateQuizzes', (quizzes) => {
+    if(currentRole !== 'teacher') return;
+    const list = document.getElementById('quiz-list');
+    if(!list) return;
+    list.innerHTML = '';
+    
+    if(quizzes.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em;">저장된 시험지가 없습니다.</p>';
+        return;
+    }
+
+    [...quizzes].reverse().forEach(q => {
+        const item = document.createElement('div');
+        item.className = 'record-item';
+        item.innerHTML = `
+            <div><strong style="color:var(--accent-color); font-size:1.1em;">📝 ${q.name}</strong></div>
+            <div style="display:flex; gap:5px;">
+                <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; color:#fff;" onclick="socket.emit('setActiveQuiz', ${q.id})">이 시험지 활성화</button>
+                <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="if(confirm('이 시험지를 영구 삭제하시겠습니까?')) socket.emit('deleteQuiz', ${q.id})">삭제</button>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+});
+
+socket.on('activeQuizChanged', (quizName) => {
+    if(currentRole === 'teacher') customAlert(`적용 완료: 이제 학생들은 [${quizName}] 시험을 보게 됩니다.`);
+});
 </script>
 </body>
 </html>
