@@ -565,12 +565,19 @@ socket.on('updateStudents', (students) => {
 });
 
 socket.on('updateRecords', (records) => { globalRecords = records; });
-socket.on('testStarted', (activeQuizData) => { 
-    if(!activeQuizData) { 
+socket.on('testStarted', (serverQuizData) => { 
+    // ★ 1. 선생님이 엑셀로 '활성화'한 시험지가 있다면 그걸로 덮어씁니다.
+    if (serverQuizData) {
+        partsInfo = serverQuizData; 
+    }
+    // ★ 2. 활성화한 엑셀이 없다면? 차단하지 않고 기존 data.js의 100문제를 그대로 사용합니다!
+    
+    // 안전 장치
+    if (!partsInfo || partsInfo.length === 0) { 
         customAlert("현재 배정된 시험지가 없습니다. 감독관에게 문의하세요."); 
         return; 
     }
-    partsInfo = activeQuizData; // 서버에서 받은 활성화 시험지로 덮어쓰기
+    
     currentPartIndex = 0; 
     showPartDirection(); 
 });
