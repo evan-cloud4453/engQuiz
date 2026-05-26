@@ -4,8 +4,6 @@ const { Server } = require('socket.io');
 const fs = require('fs');
 const mongoose = require('mongoose'); // ★ 추가
 
-const { DEFAULT_PARTS_INFO } = require('./data'); // data.js의 기본 설정 불러오기
-
 // 1. DB 연결 (복사한 주소를 안에 넣으세요)
 mongoose.connect(process.env.MONGO_URI);
 
@@ -85,18 +83,6 @@ io.on('connection', (socket) => {
             io.to(studentId).emit('testStarted', activeQuizData || null);
             if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
         }
-    });
-
-    // [업로드 로직]
-    socket.on('uploadQuiz', async (quizData) => {
-        // quizData는 { name: "시험지이름", questionsByPart: [[Part1문제들], [Part2문제들]...] } 형태라고 가정
-        
-        // 1. 기본 틀(DEFAULT_PARTS_INFO)과 업로드된 문제(questionsByPart)를 합칩니다.
-        const fullQuizData = DEFAULT_PARTS_INFO.map((part, index) => {
-            return {
-                ...part, // 제목, 제한시간, 안내문, 예시 정보
-                questions: quizData.questionsByPart[index] || [] // 엑셀에서 온 문제들만 주입
-            };
     });
 
     // 2. DB에 저장
