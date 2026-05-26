@@ -176,7 +176,7 @@ io.on('connection', (socket) => {
     // 선생님: 학생 기록 삭제 기능
     socket.on('deleteRecord', async (recordId) => {
         if (socket.id === teacherSocketId) {
-            await Record.deleteOne({ id: recordId }); // ✅ DB 삭제
+            await Record.deleteOne({ id: recordId }); // DB 삭제
             testRecords = testRecords.filter(r => r.id !== recordId);
             io.emit('updateRecords', testRecords);
         }
@@ -184,7 +184,7 @@ io.on('connection', (socket) => {
 
     socket.on('deleteAllRecords', async () => {
         if (socket.id === teacherSocketId) {
-            await Record.deleteMany({}); // ✅ DB 전체 삭제
+            await Record.deleteMany({}); // DB 전체 삭제
             testRecords = [];
             io.emit('updateRecords', testRecords);
         }
