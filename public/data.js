@@ -1,7 +1,7 @@
 // 시간 배분: 총 60분 (3600초)
 // Part 1(15): 8분, Part 2(15): 7분, Part 3(10): 5분, Part 4(30): 15분, Part 5(15): 9분, Part 6(15): 16분
 
-const partsInfo = [
+let partsInfo = [
     {
         title: "Part 1. 단순 의미 파악", timeLimit: 480,
         instruction: "제시된 영단어의 정확한 뜻을 고르시오.",
