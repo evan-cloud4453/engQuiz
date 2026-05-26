@@ -86,18 +86,23 @@ io.on('connection', (socket) => {
     });
 
     // 퀴즈 업로드, 삭제, 활성화 이벤트
-    socket.on('uploadQuiz', (quizData) => {
+    // ★ 엑셀 시험지 업로드 (DB 저장)
+    socket.on('uploadQuiz', async (quizData) => { // async 추가
         if (socket.id === teacherSocketId) {
+            const newQuiz = new Quiz(quizData);
+            await newQuiz.save(); // DB에 영구 저장!
+            
             quizzes.push(quizData);
-            fs.writeFileSync(QUIZZES_FILE, JSON.stringify(quizzes, null, 2));
             io.emit('updateQuizzes', quizzes);
         }
     });
 
-    socket.on('deleteQuiz', (quizId) => {
+    // ★ 엑셀 시험지 삭제 (DB 삭제)
+    socket.on('deleteQuiz', async (quizId) => { // async 추가
         if (socket.id === teacherSocketId) {
+            await Quiz.deleteOne({ id: quizId }); // DB에서도 영구 삭제!
+            
             quizzes = quizzes.filter(q => q.id !== quizId);
-            fs.writeFileSync(QUIZZES_FILE, JSON.stringify(quizzes, null, 2));
             io.emit('updateQuizzes', quizzes);
         }
     });
@@ -208,9 +213,14 @@ socket.on('logout', () => {
 
 const PORT = process.env.PORT || 3000;
 
-// ★ 4. 기록 불러오기 (서버 시작 시)
 const startServer = async () => {
-    testRecords = await Record.find({}); // DB에서 모든 기록 싹 가져오기
+    // 1. DB에서 학생 기록 불러오기
+    testRecords = await Record.find({}); 
+    
+    // 2. ★ DB에서 선생님이 올렸던 시험지 목록 불러오기
+    quizzes = await Quiz.find({}); 
+    // 저장된 엑셀이 하나라도 있으면 가장 최근에 올린 것을 기본 활성화
+    if (quizzes.length > 0) activeQuizData = quizzes[quizzes.length - 1].data; 
     
     server.listen(PORT, () => {
         console.log(`Server listening on port ${PORT}`);
