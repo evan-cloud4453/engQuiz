@@ -1,22 +1,22 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-
 const fs = require('fs');
+
+let testRecords = []; 
+let quizzes = [];
+let activeQuizData = null; 
+
 const RECORDS_FILE = 'records.json';
 if (fs.existsSync(RECORDS_FILE)) {
     testRecords = JSON.parse(fs.readFileSync(RECORDS_FILE, 'utf8'));
 }
 
 const QUIZZES_FILE = 'quizzes.json';
-let quizzes = [];
-let activeQuizData = null; 
-
 if (fs.existsSync(QUIZZES_FILE)) {
     quizzes = JSON.parse(fs.readFileSync(QUIZZES_FILE, 'utf8'));
     if (quizzes.length > 0) activeQuizData = quizzes[0].data; // 기본값
 }
-
 
 const app = express();
 const server = http.createServer(app);
@@ -25,7 +25,6 @@ const io = new Server(server);
 app.use(express.static('public'));
 
 let students = {}; 
-let testRecords = []; 
 let teacherSocketId = null;
 
 io.on('connection', (socket) => {
