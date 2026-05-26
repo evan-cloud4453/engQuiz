@@ -1,206 +1,5 @@
-const socket = io();
-let currentRole = '';
-let myName = '';
-
-// 시험 데이터 상태
-let currentPartIndex = 0;
-let currentQIndex = 0;
-let remainingTime = 0;
-let timerInterval = null;
-let userAnswers = {}; // { "0_0": "A", "0_1": "B" ... } (partIndex_qIndex)
-
-// 화면 전환 함수
-function switchScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-}
-
-function showLoginForm(role) {
-    document.getElementById('student-form').style.display = role === 'student' ? 'block' : 'none';
-    document.getElementById('teacher-form').style.display = role === 'teacher' ? 'block' : 'none';
-}
-
-function login(role) {
-    const data = { role: role };
-    if (role === 'student') data.name = document.getElementById('student-name').value;
-    if (role === 'teacher') data.password = document.getElementById('teacher-pw').value;
-    socket.emit('login', data);
-}
-
-// 소켓 리스너: 로그인
-socket.on('loginSuccess', (data) => {
-    currentRole = data.role;
-    if (currentRole === 'teacher') switchScreen('teacher-screen');
-    if (currentRole === 'student') {
-        myName = data.name;
-        switchScreen('waiting-screen');
-    }
-});
-socket.on('loginFail', (msg) => alert(msg));
-
-// ==========================================
-// [선생님 모드 로직]
-// ==========================================
-socket.on('updateStudents', (students) => {
-    if (currentRole !== 'teacher') return;
-    const container = document.getElementById('student-list');
-    container.innerHTML = '';
-    
-    Object.values(students).forEach(st => {
-        const card = document.createElement('div');
-        card.className = 'student-card';
-        
-        let actionBtn = '';
-        if (st.status === 'waiting') {
-            actionBtn = `<button onclick="socket.emit('startTest', '${st.id}')" class="btn btn-inline">시험 시작 승인</button>`;
-        } else if (st.status === 'testing' || st.status === 'paused') {
-            actionBtn = `<button onclick="socket.emit('togglePause', '${st.id}')" class="btn outline btn-inline">
-                            ${st.status === 'testing' ? '일시 정지' : '시험 재개'}
-                         </button>`;
-        }
-
-        // 실시간 답안 현황 출력용 (최근 답안)
-        let recentAnswer = st.liveAnswers[`p${st.currentPart}_q${st.currentQ - 1}`] || '입력중...';
-
-        card.innerHTML = `
-            <h3>${st.name} <span class="student-status">[${st.status}]</span></h3>
-            <p>현재 위치: Part ${st.currentPart} - ${st.currentQ}번 문제</p>
-            <p>최근 선택 답안: <span style="color:var(--accent-color)">${recentAnswer}</span></p>
-            ${actionBtn}
-        `;
-        container.appendChild(card);
-    });
-});
-
-// ==========================================
-// [학생 모드 로직]
-// ==========================================
-socket.on('testStarted', () => {
-    // 선생님이 승인하면 첫 번째 파트 디렉션 화면으로 이동
-    currentPartIndex = 0;
-    showPartDirection();
-});
-
-socket.on('testPaused', () => {
-    clearInterval(timerInterval);
-    document.getElementById('pause-overlay').style.display = 'flex';
-});
-
-socket.on('testResumed', () => {
-    document.getElementById('pause-overlay').style.display = 'none';
-    startTimer();
-});
-
-function showPartDirection() {
-    const partData = partsInfo[currentPartIndex];
-    document.getElementById('dir-title').textContent = partData.title;
-    document.getElementById('dir-desc').innerHTML = partData.instruction;
-    document.getElementById('dir-time').textContent = `${Math.floor(partData.timeLimit / 60)}분`;
-    
-    remainingTime = partData.timeLimit;
-    switchScreen('direction-screen');
-}
-
-function startPart() {
-    currentQIndex = 0;
-    switchScreen('quiz-screen');
-    renderQuestion();
-    startTimer();
-}
-
-function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        remainingTime--;
-        
-        let m = Math.floor(remainingTime / 60).toString().padStart(2, '0');
-        let s = (remainingTime % 60).toString().padStart(2, '0');
-        document.getElementById('quiz-timer').textContent = `${m}:${s}`;
-
-        if (remainingTime <= 0) {
-            clearInterval(timerInterval);
-            alert("시간이 초과되었습니다. 다음 파트로 강제 이동합니다.");
-            moveToNextPart();
-        }
-    }, 1000);
-}
-
-function renderQuestion() {
-    const partData = partsInfo[currentPartIndex];
-    const qData = partData.questions[currentQIndex];
-    const isLastQ = (currentQIndex === partData.questions.length - 1);
-    
-    document.getElementById('quiz-title').textContent = `${partData.title} (${currentQIndex + 1}/${partData.questions.length})`;
-    document.getElementById('question-text').textContent = `Q. ${qData.q}`;
-    
-    const optContainer = document.getElementById('options-container');
-    const textInput = document.getElementById('text-answer');
-    
-    optContainer.innerHTML = '';
-    textInput.style.display = 'none';
-    textInput.value = '';
-
-    const savedAnswer = userAnswers[`${currentPartIndex}_${currentQIndex}`];
-
-    // 객관식 vs 주관식(철자쓰기) UI 분기
-    if (qData.options) {
-        optContainer.style.display = 'block';
-        qData.options.forEach(opt => {
-            const btn = document.createElement('div');
-            btn.className = 'option-btn';
-            btn.textContent = opt;
-            if (savedAnswer === opt) btn.classList.add('selected');
-            
-            btn.onclick = () => {
-                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                saveAnswer(opt);
-            };
-            optContainer.appendChild(btn);
-        });
-    } else {
-        // 주관식(철자쓰기 파트6)
-        textInput.style.display = 'block';
-        if (savedAnswer) textInput.value = savedAnswer;
-        textInput.oninput = (e) => saveAnswer(e.target.value);
-    }
-
-    // 네비게이션 버튼 (자유로운 이동 지원)
-    document.getElementById('prev-btn').style.display = currentQIndex === 0 ? 'none' : 'inline-block';
-    const nextBtn = document.getElementById('next-btn');
-    if (isLastQ) {
-        nextBtn.textContent = "현재 파트 제출 (조기 종료)";
-        nextBtn.onclick = () => {
-            if(confirm("이 파트의 풀이를 마치고 제출하시겠습니까?")) moveToNextPart();
-        };
-    } else {
-        nextBtn.textContent = "다음 문항";
-        nextBtn.onclick = handleNext;
-    }
-}
-
-function saveAnswer(ans) {
-    userAnswers[`${currentPartIndex}_${currentQIndex}`] = ans;
-    // 서버로 실시간 전송 (선생님 모니터링용)
-    socket.emit('liveAnswer', { part: currentPartIndex + 1, qIndex: currentQIndex, answer: ans });
-}
-
-function handleNext() { currentQIndex++; renderQuestion(); }
-function handlePrev() { currentQIndex--; renderQuestion(); }
-
-function moveToNextPart() {
-    clearInterval(timerInterval);
-    currentPartIndex++;
-    if (currentPartIndex < partsInfo.length) {
-        showPartDirection();
-    } else {
-        // 모든 파트 종료
-        switchScreen('result-screen');
-    }
-}
-
 // =====================================
-// 1. 오디오 로직 (원본 유지)
+// 1. 오디오 및 기본 설정
 // =====================================
 const bgm = document.getElementById('bgm');
 const quizBgm = document.getElementById('quiz-bgm');
@@ -208,7 +7,10 @@ const soundCorrect = document.getElementById('sound-correct');
 const soundWrong = document.getElementById('sound-wrong');
     
 let isBGMMuted = false; let isSFXMuted = false; let bgmStarted = false;
-bgm.volume = 0.3; quizBgm.volume = 0.3; soundCorrect.volume = 0.3; soundWrong.volume = 0.3;
+if(bgm) bgm.volume = 0.3; 
+if(quizBgm) quizBgm.volume = 0.3; 
+if(soundCorrect) soundCorrect.volume = 0.3; 
+if(soundWrong) soundWrong.volume = 0.3;
 
 function updateBGMVolume(vol) { bgm.volume = vol; quizBgm.volume = vol; if (vol > 0 && isBGMMuted) toggleBGMMute(); }
 function updateSFXVolume(vol) { soundCorrect.volume = vol; soundWrong.volume = vol; if (vol > 0 && isSFXMuted) toggleSFXMute(); }
@@ -231,7 +33,7 @@ function toggleSFXMute() {
 }
 
 // =====================================
-// 2. 커스텀 팝업 (모달) 로직
+// 2. 팝업 UI (모달)
 // =====================================
 function customAlert(msg, callback) {
     document.getElementById('modal-msg').innerHTML = msg;
@@ -253,16 +55,14 @@ function customConfirm(msg, yesCallback) {
 }
 
 // =====================================
-// 4. 앱 로직 및 소켓 통신
+// 3. 메인 앱 로직 및 소켓 통신
 // =====================================
 const socket = io();
 let currentRole = '';
 let myName = '';
 let currentPartIndex = 0; let currentQIndex = 0; let remainingTime = 0;
 let timerInterval = null; let userAnswers = {}; 
-
 let globalRecords = []; 
-// let myLocalRecords = JSON.parse(localStorage.getItem('myVocabRecords')) || []; 
 
 function switchScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -270,8 +70,8 @@ function switchScreen(id) {
     window.scrollTo(0, 0);
 
     if(!bgmStarted) return;
-    if (id === 'quiz-screen') { bgm.pause(); quizBgm.play().catch(()=>{}); } 
-    else { quizBgm.pause(); bgm.play().catch(()=>{}); }
+    if (id === 'quiz-screen') { if(bgm) bgm.pause(); if(quizBgm) quizBgm.play().catch(()=>{}); } 
+    else { if(quizBgm) quizBgm.pause(); if(bgm) bgm.play().catch(()=>{}); }
 }
 
 function showLoginForm(role) {
@@ -279,7 +79,7 @@ function showLoginForm(role) {
     document.getElementById('student-form').style.display = role === 'student' ? 'block' : 'none';
     document.getElementById('teacher-form').style.display = role === 'teacher' ? 'block' : 'none';
     
-    if(!bgmStarted) { bgm.play().catch(()=>{}); bgmStarted = true; }
+    if(!bgmStarted && bgm) { bgm.play().catch(()=>{}); bgmStarted = true; }
 }
 
 function cancelLogin() {
@@ -318,7 +118,9 @@ socket.on('loginSuccess', (data) => {
 });
 socket.on('loginFail', (msg) => customAlert(msg));
 
-// 선생님 현황판
+// =====================================
+// 4. 감독관 현황판 관리
+// =====================================
 socket.on('updateStudents', (students) => {
     if (currentRole !== 'teacher') return;
     const container = document.getElementById('student-list');
@@ -365,15 +167,16 @@ socket.on('updateStudents', (students) => {
     });
 });
 
+// =====================================
+// 5. 학생 시험 진행 로직
+// =====================================
 socket.on('updateRecords', (records) => { globalRecords = records; });
 
-// ★ [수정됨] 시험 시작 시 서버에서 엑셀 데이터를 받아 덮어쓰는 로직
 socket.on('testStarted', (serverQuizData) => { 
-    if (serverQuizData) {
-        partsInfo = serverQuizData; // 활성화된 엑셀 시험지로 교체
+    if (serverQuizData && serverQuizData.length > 0) {
+        partsInfo = serverQuizData; 
     }
     
-    // 만약 엑셀 데이터도 없고 기본 데이터도 없으면 차단
     if (!partsInfo || partsInfo.length === 0) { 
         customAlert("현재 배정된 시험지가 없습니다. 감독관에게 문의하세요."); 
         return; 
@@ -385,14 +188,12 @@ socket.on('testStarted', (serverQuizData) => {
 
 socket.on('testPaused', () => { clearInterval(timerInterval); document.getElementById('pause-overlay').style.display = 'flex'; });
 socket.on('testResumed', () => { document.getElementById('pause-overlay').style.display = 'none'; startTimer(); });
-
 socket.on('testApproved', (record) => {
     document.getElementById('res-score').textContent = record.score;
     document.getElementById('res-total').textContent = record.total;
     switchScreen('result-screen');
 });
 
-// 단어 철자 무작위 섞기 함수
 function scrambleWord(word) {
     let arr = word.split('');
     for (let i = arr.length - 1; i > 0; i--) {
@@ -412,7 +213,6 @@ function showPartDirection() {
     exBox.innerHTML = '';
     
     if(partData.example) {
-        // 단어 뜻 묻는 파트(1,3,5)는 중앙정렬 및 크게
         if(currentPartIndex === 0 || currentPartIndex === 2 || currentPartIndex === 4) {
             exBox.className = "mini-quiz centered-example";
         } else {
@@ -589,7 +389,6 @@ function moveToNextPart(isForced = false) {
                 let isCorrect = false;
 
                 if (uAns && uAns.trim() !== '') {
-                    // 대소문자 무시 치환 검사
                     let cleanUser = uAns.trim().toLowerCase();
                     let cleanCorrect = qData.answer.trim().toLowerCase();
                     isCorrect = (cleanUser === cleanCorrect);
@@ -615,40 +414,25 @@ function moveToNextPart(isForced = false) {
 }
 
 // =====================================
-// 기록 열람 및 삭제 로직
+// 6. 기록 열람 및 삭제 로직
 // =====================================
 function showStudentRecords() {
-    if(!myName) {
-        customAlert("이름을 먼저 입력한 후 내 기록을 열람해주세요.");
-        return;
-    }
-    // ★ 로컬이 아닌 서버 데이터(globalRecords)에서 내 기록만 필터링합니다.
+    if(!myName) { customAlert("이름을 먼저 입력한 후 내 기록을 열람해주세요."); return; }
     const myRecords = globalRecords.filter(r => r.studentName === myName);
     document.getElementById('records-title').textContent = `${myName}님의 기록`;
-    
-    // ★ 학생은 기록 삭제를 할 수 없도록 삭제 버튼 영역을 비워둡니다.
     document.getElementById('record-delete-area').innerHTML = '';
-
     renderRecordList(myRecords, 'student');
     switchScreen('records-screen');
 }
 
-function goBackFromRecords() {
-    switchScreen(currentRole === 'teacher' ? 'teacher-screen' : 'waiting-screen');
-}
+function goBackFromRecords() { switchScreen(currentRole === 'teacher' ? 'teacher-screen' : 'waiting-screen'); }
 
-// 학생 로그아웃(메인으로 나가기) 기능 추가
-function logoutStudent() {
-    // 모든 상태와 소켓 연결을 가장 완벽하게 초기화하는 방법
-    location.reload(); 
-}
+function logoutStudent() { location.reload(); }
 
 function showTeacherRecords() {
     document.getElementById('records-title').textContent = "모든 학생 제출 기록";
-    
     const delArea = document.getElementById('record-delete-area');
     delArea.innerHTML = `<button class="btn outline btn-inline" style="padding: 5px 15px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="clearAllServerRecords()">전체 기록 서버 삭제</button>`;
-
     renderRecordList(globalRecords, 'teacher');
     switchScreen('records-screen');
 }
@@ -664,7 +448,6 @@ function renderRecordList(records, role) {
     [...records].reverse().forEach(rec => {
         const item = document.createElement('div');
         item.className = 'record-item';
-        
         let nameTag = role === 'teacher' ? `<strong style="color:var(--accent-color); font-size:1.1em;">[${rec.studentName}]</strong><br>` : '';
         let delBtn = role === 'teacher' ? `<br><button onclick="deleteServerRecord(${rec.id})" style="margin-top:10px; background:none; border:none; color:var(--wrong-color); text-decoration:underline; cursor:pointer; font-family:'Noto Serif KR';">이 기록 삭제</button>` : '';
 
@@ -681,18 +464,9 @@ function renderRecordList(records, role) {
     });
 }
 
-function clearMyLocalRecords(name) {
-    customConfirm("정말로 내 기기에 저장된 기록을 영구 삭제하시겠습니까?", () => {
-        myLocalRecords = myLocalRecords.filter(r => r.studentName !== name);
-        localStorage.setItem('myVocabRecords', JSON.stringify(myLocalRecords));
-        showStudentRecords();
-    });
-}
-
 function clearAllData() {
-    customConfirm("로컬 저장소의 모든 캐시 데이터를 삭제하시겠습니까?", () => {
-        localStorage.removeItem('myVocabRecords');
-        myLocalRecords = [];
+    customConfirm("로컬 저장소의 모든 데이터를 삭제하시겠습니까?", () => {
+        localStorage.clear();
         customAlert("삭제되었습니다.", () => location.reload());
     });
 }
@@ -712,9 +486,7 @@ function deleteServerRecord(id) {
 }
 
 function openReview(recordId, role) {
-    const records = globalRecords;
-    const record = records.find(r => r.id === recordId);
-    
+    const record = globalRecords.find(r => r.id === recordId);
     document.getElementById('review-title').textContent = `${record.studentName || '나'}의 오답노트`;
     const container = document.getElementById('review-content');
     container.innerHTML = '';
@@ -727,12 +499,7 @@ function openReview(recordId, role) {
             currentPartTitle = item.partTitle;
             qIndexInPart = 1;
             const partHeader = document.createElement('div');
-            partHeader.style.color = "var(--accent-color)";
-            partHeader.style.fontSize = "1.1em";
-            partHeader.style.fontWeight = "bold";
-            partHeader.style.margin = "25px 0 10px 0";
-            partHeader.style.borderBottom = "1px solid var(--border-color)";
-            partHeader.style.paddingBottom = "5px";
+            partHeader.style.cssText = "color:var(--accent-color); font-size:1.1em; font-weight:bold; margin:25px 0 10px 0; border-bottom:1px solid var(--border-color); padding-bottom:5px;";
             partHeader.textContent = `[ ${currentPartTitle} ]`;
             container.appendChild(partHeader);
         }
@@ -742,8 +509,6 @@ function openReview(recordId, role) {
         card.style.borderLeft = item.isCorrect ? '4px solid var(--correct-color)' : '4px solid var(--wrong-color)';
         
         const badgeClass = item.isCorrect ? 'badge correct' : 'badge wrong';
-        
-        // 스크램블 문제 괄호 제거
         let cleanQ = item.q.replace(/<br><span style='color:var\(--text-muted\); font-weight:normal;'>\(.*\)<\/span>/, "");
 
         card.innerHTML = `
@@ -763,13 +528,12 @@ function openReview(recordId, role) {
 }
 
 function viewMyRecentRecord() {
-    const nameInput = document.getElementById('student-name').value.trim();
     const myRecords = globalRecords.filter(r => r.studentName === myName);
     if(myRecords.length > 0) openReview(myRecords[myRecords.length-1].id, 'student');
 }
 
 // =====================================
-// 5. 엑셀 업로드 및 문제 관리 알고리즘
+// 7. 엑셀 업로드 및 문제 관리
 // =====================================
 function handleFileUpload(event) {
     const file = event.target.files[0];
@@ -785,7 +549,6 @@ function handleFileUpload(event) {
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(firstSheet, {defval: ""}); 
 
-        // 알고리즘: 형식 변환 및 공백 예외 처리
         const parsedQuiz = parseExcelToQuiz(rows);
 
         if (!parsedQuiz) {
@@ -825,7 +588,6 @@ function parseExcelToQuiz(rows) {
         }
     });
 
-    // 안전장치: 한 파트라도 문제가 0개면 에러 처리
     for (let i = 0; i < 6; i++) {
         if (parts[i].questions.length === 0) return null; 
     }
