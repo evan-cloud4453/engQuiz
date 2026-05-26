@@ -565,14 +565,14 @@ socket.on('updateStudents', (students) => {
 });
 
 socket.on('updateRecords', (records) => { globalRecords = records; });
+
+// ★ [수정됨] 시험 시작 시 서버에서 엑셀 데이터를 받아 덮어쓰는 로직
 socket.on('testStarted', (serverQuizData) => { 
-    // ★ 1. 선생님이 엑셀로 '활성화'한 시험지가 있다면 그걸로 덮어씁니다.
     if (serverQuizData) {
-        partsInfo = serverQuizData; 
+        partsInfo = serverQuizData; // 활성화된 엑셀 시험지로 교체
     }
-    // ★ 2. 활성화한 엑셀이 없다면? 차단하지 않고 기존 data.js의 100문제를 그대로 사용합니다!
     
-    // 안전 장치
+    // 만약 엑셀 데이터도 없고 기본 데이터도 없으면 차단
     if (!partsInfo || partsInfo.length === 0) { 
         customAlert("현재 배정된 시험지가 없습니다. 감독관에게 문의하세요."); 
         return; 
@@ -581,6 +581,7 @@ socket.on('testStarted', (serverQuizData) => {
     currentPartIndex = 0; 
     showPartDirection(); 
 });
+
 socket.on('testPaused', () => { clearInterval(timerInterval); document.getElementById('pause-overlay').style.display = 'flex'; });
 socket.on('testResumed', () => { document.getElementById('pause-overlay').style.display = 'none'; startTimer(); });
 
