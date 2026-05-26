@@ -2,6 +2,17 @@ const socket = io();
 let currentRole = '';
 let myName = '';
 
+const RECORDS_FILE = 'records.json';
+const QUIZZES_FILE = 'quizzes.json';
+let quizzes = [];
+let activeQuizData = null; // 현재 학생들이 볼 활성화된 시험지
+
+if (fs.existsSync(QUIZZES_FILE)) {
+    quizzes = JSON.parse(fs.readFileSync(QUIZZES_FILE, 'utf8'));
+    if (quizzes.length > 0) activeQuizData = quizzes[0].data; // 기본값
+}
+
+
 // 시험 데이터 상태
 let currentPartIndex = 0;
 let currentQIndex = 0;
