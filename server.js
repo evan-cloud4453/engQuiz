@@ -8,6 +8,16 @@ if (fs.existsSync(RECORDS_FILE)) {
     testRecords = JSON.parse(fs.readFileSync(RECORDS_FILE, 'utf8'));
 }
 
+const QUIZZES_FILE = 'quizzes.json';
+let quizzes = [];
+let activeQuizData = null; 
+
+if (fs.existsSync(QUIZZES_FILE)) {
+    quizzes = JSON.parse(fs.readFileSync(QUIZZES_FILE, 'utf8'));
+    if (quizzes.length > 0) activeQuizData = quizzes[0].data; // 기본값
+}
+
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
@@ -29,6 +39,7 @@ io.on('connection', (socket) => {
                 socket.emit('loginSuccess', { role: 'teacher' });
                 io.to(teacherSocketId).emit('updateStudents', students);
                 io.emit('updateRecords', testRecords);
+                socket.emit('updateQuizzes', quizzes);
             } else {
                 socket.emit('loginFail', '비밀번호가 틀렸습니다.');
             }
@@ -59,8 +70,35 @@ io.on('connection', (socket) => {
     socket.on('startTest', (studentId) => {
         if (students[studentId]) {
             students[studentId].status = 'testing';
-            io.to(studentId).emit('testStarted');
+            io.to(studentId).emit('testStarted', activeQuizData);
             if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
+        }
+    });
+
+    // 퀴즈 업로드, 삭제, 활성화 이벤트
+    socket.on('uploadQuiz', (quizData) => {
+        if (socket.id === teacherSocketId) {
+            quizzes.push(quizData);
+            fs.writeFileSync(QUIZZES_FILE, JSON.stringify(quizzes, null, 2));
+            io.emit('updateQuizzes', quizzes);
+        }
+    });
+
+    socket.on('deleteQuiz', (quizId) => {
+        if (socket.id === teacherSocketId) {
+            quizzes = quizzes.filter(q => q.id !== quizId);
+            fs.writeFileSync(QUIZZES_FILE, JSON.stringify(quizzes, null, 2));
+            io.emit('updateQuizzes', quizzes);
+        }
+    });
+
+    socket.on('setActiveQuiz', (quizId) => {
+        if (socket.id === teacherSocketId) {
+            const target = quizzes.find(q => q.id === quizId);
+            if(target) {
+                activeQuizData = target.data;
+                socket.emit('activeQuizChanged', target.name);
+            }
         }
     });
 
