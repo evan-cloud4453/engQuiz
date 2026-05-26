@@ -208,7 +208,6 @@ socket.on('logout', () => {
 });
 
 const PORT = process.env.PORT || 3000;
-const PORT = process.env.PORT || 3000;
 
 // ★ 4. 기록 불러오기 (서버 시작 시)
 const startServer = async () => {
