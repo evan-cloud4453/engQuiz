@@ -18,17 +18,16 @@ const recordSchema = new mongoose.Schema({
 });
 const Record = mongoose.model('Record', recordSchema);
 
+const quizSchema = new mongoose.Schema({
+    id: Number,
+    name: String,
+    data: Array
+});
+const Quiz = mongoose.model('Quiz', quizSchema);
+
 let testRecords = []; 
 let quizzes = [];
-let activeQuizData = null; 
-
-// (주의: 기존에 있던 RECORDS_FILE 읽어오는 코드는 지웠습니다)
-
-const QUIZZES_FILE = 'quizzes.json';
-if (fs.existsSync(QUIZZES_FILE)) {
-    quizzes = JSON.parse(fs.readFileSync(QUIZZES_FILE, 'utf8'));
-    if (quizzes.length > 0) activeQuizData = quizzes[0].data;
-}
+let activeQuizData = null;
 
 const app = express();
 const server = http.createServer(app);
