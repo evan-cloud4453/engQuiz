@@ -174,21 +174,18 @@ io.on('connection', (socket) => {
     });
 
     // 선생님: 학생 기록 삭제 기능
-    socket.on('deleteRecord', (recordId) => {
+    socket.on('deleteRecord', async (recordId) => {
         if (socket.id === teacherSocketId) {
+            await Record.deleteOne({ id: recordId }); // ✅ DB 삭제
             testRecords = testRecords.filter(r => r.id !== recordId);
-            fs.writeFileSync(RECORDS_FILE, JSON.stringify(testRecords, null, 2));
             io.emit('updateRecords', testRecords);
         }
-    });
+    });    
 
-    socket.on('deleteAllRecords', () => {
+    socket.on('deleteAllRecords', async () => {
         if (socket.id === teacherSocketId) {
+            await Record.deleteMany({}); // ✅ DB 전체 삭제
             testRecords = [];
-            
-            // ★ 파일로 영구 저장
-            fs.writeFileSync(RECORDS_FILE, JSON.stringify(testRecords, null, 2));
-            
             io.emit('updateRecords', testRecords);
         }
     });
