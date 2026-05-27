@@ -87,10 +87,10 @@ io.on('connection', (socket) => {
             if (!activeQuizData || activeQuizData.length === 0) {
                 if (quizzes.length === 0) {
                     // 저장된 엑셀이 아예 없을 때
-                    socket.emit('serverAlert', '적용할 문제가 없습니다. 문제를 업로드 후 적용(활성화)해 주세요.');
+                    socket.emit('serverAlert', '적용할 문제가 없습니다. <br>문제를 업로드 후 [활성화]해 주세요.');
                 } else {
                     // 엑셀은 있는데 [활성화] 버튼을 안 눌렀을 때
-                    socket.emit('serverAlert', '문제지 적용을 안 했습니다. 문제 관리소에서 [이 시험지 활성화]를 눌러주세요.');
+                    socket.emit('serverAlert', '문제지 [활성화]가 되지 않았습니다. <br>문제 관리소에서 [활성화]를 눌러주세요.');
                 }
                 return; // 여기서 즉시 중단 (학생에게 안 넘어감)
             }
