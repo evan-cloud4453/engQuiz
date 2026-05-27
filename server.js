@@ -234,13 +234,15 @@ socket.on('logout', () => {
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
-    // 1. DB에서 학생 기록 불러오기
-    testRecords = await Record.find({}); 
+    // 1. DB에서 데이터를 가져올 때 순수 데이터(.lean())로 가져와 충돌 완벽 방지
+    testRecords = await Record.find({}).lean(); 
     
-    // 2. ★ DB에서 선생님이 올렸던 시험지 목록 불러오기
-    quizzes = await Quiz.find({}); 
-    // 저장된 엑셀이 하나라도 있으면 가장 최근에 올린 것을 기본 활성화
-    if (quizzes.length > 0) activeQuizData = quizzes[quizzes.length - 1].data; 
+    // 2. 시험지 목록 불러오기
+    quizzes = await Quiz.find({}).lean(); 
+    
+    // ★ 핵심 수정: 강제 자동 활성화 로직 삭제! 
+    // 이제 서버가 켜지면 무조건 '비활성화(null)' 상태로 시작합니다.
+    activeQuizData = null; 
     
     server.listen(PORT, () => {
         console.log(`Server listening on port ${PORT}`);
