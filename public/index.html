@@ -146,29 +146,54 @@
         .progress-box.unsolved { background-color: var(--btn-bg); border-color: var(--border-color); }
 
         /* 디렉션 예시 미니 UI */
-        /* [수정] 디렉션 박스 및 미니 퀴즈 세련되게 다이어트 */
+        /* =========================================
+           [복구 및 개선] 실제 문제 화면 축소판 레이아웃
+           ========================================= */
         .direction-box { 
-            background-color: transparent; padding: 15px 10px; 
-            border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); 
-            margin-bottom: 25px; line-height: 1.6; 
+            background-color: var(--container-bg); 
+            padding: 20px; 
+            border: 1px solid var(--border-color); 
+            margin-bottom: 25px; 
+            border-radius: 2px;
         }
         .mini-quiz { 
-            background: transparent; border: none; padding: 0; margin: 15px 0 0 0; 
-            font-size: 0.95em; text-align: left; 
+            background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid var(--border-color); 
+            padding: 15px; 
+            margin-top: 15px; 
+            border-radius: 2px; 
+            font-size: 0.9em; 
+            text-align: left; 
         }
+        /* 주관식 예시 등 중앙 정렬이 필요한 파트용 */
         .mini-quiz.centered-example { 
-            text-align: center; font-size: 1.05em; padding: 15px 0 0 0; 
-            border: none; background: transparent; 
+            text-align: center; 
         }
-        .mini-quiz .mini-q { margin-bottom: 10px; color: var(--text-main); }
+        .mini-quiz .mini-q { 
+            margin-bottom: 12px; 
+            font-weight: bold; 
+            color: var(--text-main); 
+            line-height: 1.5;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        /* 실제 문제창의 디자인을 그대로 축소 */
         .mini-quiz .mini-opt { 
-            padding: 4px 0; border: none; background: transparent; 
-            color: var(--text-muted); font-size: 0.95em; 
+            padding: 10px 15px; 
+            border: 1px solid var(--border-color); 
+            margin-bottom: 6px; 
+            background: var(--btn-bg); 
+            font-size: 0.9em; 
+            border-radius: 2px;
+            color: var(--text-main);
         }
-        /* 기존의 두꺼운 초록색 박스 대신, 세련된 글자 하이라이트로 변경 */
+        /* ★ 초록색 하이라이트 완벽 유지 */
         .mini-quiz .mini-opt.highlight { 
-            background: transparent; color: var(--accent-color); 
-            font-weight: bold; border: none; box-shadow: none; 
+            background-color: var(--correct-bg); 
+            color: var(--correct-color); 
+            border-color: var(--correct-color); 
+            font-weight: bold; 
+            box-shadow: inset 0 0 10px rgba(39, 174, 96, 0.2); 
         }
         
         .question-text { font-size: 1.25em; margin-bottom: 30px; line-height: 1.6; text-align: left; padding: 15px 20px; background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-color); }
