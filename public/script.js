@@ -172,16 +172,19 @@ socket.on('updateStudents', (students) => {
 // =====================================
 socket.on('updateRecords', (records) => { globalRecords = records; });
 
+// ★ 새로 추가: 서버에서 보내는 경고 메시지 알림창
+socket.on('serverAlert', (msg) => {
+    customAlert(msg);
+});
+
 socket.on('testStarted', (serverQuizData) => { 
-    if (serverQuizData && serverQuizData.length > 0) {
-        partsInfo = serverQuizData; 
-    }
-    
-    if (!partsInfo || partsInfo.length === 0) { 
+    // 무조건 서버에서 준 활성화된 엑셀 데이터만 사용 (내장 문제 사용 금지)
+    if (!serverQuizData || serverQuizData.length === 0) { 
         customAlert("현재 배정된 시험지가 없습니다. 감독관에게 문의하세요."); 
         return; 
     }
     
+    partsInfo = serverQuizData; // 엑셀 데이터로 덮어쓰기
     currentPartIndex = 0; 
     showPartDirection(); 
 });
