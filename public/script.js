@@ -313,11 +313,13 @@ function renderQuestion() {
         document.getElementById('q-number').style.display = 'inline';
     }
 
+    let formattedQ = qData.q.replace(/\\n/g, '<br>').replace(/\n/g, '<br>'); // 문자 \n과 실제 엔터를 모두 <br>로 변환!
+    
     if (currentPartIndex === 4) { 
         let scrambled = scrambleWord(qData.answer);
-        qContent.innerHTML = `${qData.q} <br><span style="font-size:0.7em; color:var(--text-muted); font-weight:normal;">( ${scrambled} )</span>`;
+        qContent.innerHTML = `${formattedQ} <br><span style="font-size:0.7em; color:var(--text-muted); font-weight:normal;">( ${scrambled} )</span>`;
     } else {
-        qContent.innerHTML = qData.q.replace(/\n/g, '<br>');
+        qContent.innerHTML = formattedQ;
     }
     
     const savedAnswer = userAnswers[`${currentPartIndex}_${currentQIndex}`];
@@ -513,11 +515,12 @@ function openReview(recordId, role) {
         
         const badgeClass = item.isCorrect ? 'badge correct' : 'badge wrong';
         let cleanQ = item.q.replace(/<br><span style='color:var\(--text-muted\); font-weight:normal;'>\(.*\)<\/span>/, "");
+        let formattedReviewQ = cleanQ.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
 
         card.innerHTML = `
             <div style="margin-bottom:15px; line-height:1.5;">
                 <span class="${badgeClass}">${item.isCorrect ? '정답' : '오답'}</span>
-                <strong style="font-size:1.1em; margin-left:8px;">Q${qIndexInPart}. ${cleanQ.replace(/\n/g, '<br>')}</strong>
+                <strong style="font-size:1.1em; margin-left:8px;">Q${qIndexInPart}. ${formattedReviewQ}</strong>
             </div>
             <div style="font-size:0.95em; color:var(--text-muted);">
                 나의 선택: <strong style="color:var(--text-main);">${item.userAns}</strong><br>
