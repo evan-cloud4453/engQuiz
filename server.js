@@ -223,15 +223,50 @@ socket.on('logout', () => {
         }
     });
 
+    // [새로 추가] 끊긴 학생이 자동으로 재연결을 시도할 때 과거 정보를 복구합니다.
+    socket.on('reconnectStudent', (data) => {
+        // 기존 이름으로 메모리에 남아있는 학생 찾기
+        let oldSocketId = Object.keys(students).find(key => students[key].name === data.name);
+        
+        if (oldSocketId) {
+            // 과거 데이터 복구 및 소켓 ID(통신선) 최신화
+            let studentData = students[oldSocketId];
+            delete students[oldSocketId]; // 옛날 끊어진 선 삭제
+            
+            studentData.id = socket.id; // 새로운 통신선 연결
+            studentData.status = data.status; // 상태 복구 (testing 등)
+            students[socket.id] = studentData;
+        } else {
+            // 데이터가 아예 날아간 경우 백업용으로 새로 생성
+            students[socket.id] = {
+                id: socket.id,
+                name: data.name,
+                status: data.status || 'testing',
+                currentPart: data.currentPart || 1,
+                currentQ: data.currentQ || 1,
+                finalData: null
+            };
+        }
+        if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
+    });
+
     socket.on('disconnect', () => {
         if (socket.id === teacherSocketId) {
             teacherSocketId = null;
         } else if (students[socket.id]) {
-            delete students[socket.id];
+            // ★ 핵심: 화면이 꺼져도 즉시 삭제하지 않고 '연결 끊김' 상태로 유지합니다!
+            students[socket.id].status = 'disconnected';
             if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
+            
+            // 만약 30분 동안 돌아오지 않으면 그때야 메모리에서 삭제합니다.
+            setTimeout(() => {
+                if (students[socket.id] && students[socket.id].status === 'disconnected') {
+                    delete students[socket.id];
+                    if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
+                }
+            }, 30 * 60 * 1000); 
         }
     });
-});
 
 const PORT = process.env.PORT || 3000;
 
