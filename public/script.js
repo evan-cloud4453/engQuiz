@@ -420,7 +420,7 @@ function moveToNextPart(isForced = false) {
 // 6. 기록 열람 및 삭제 로직
 // =====================================
 function showStudentRecords() {
-    if(!myName) { customAlert("이름을 먼저 입력한 후 내 기록을 열람해주세요."); return; }
+    if(!myName) { customAlert("이름을 먼저 입력한 후 기록을 열람해주세요."); return; }
     const myRecords = globalRecords.filter(r => r.studentName === myName);
     document.getElementById('records-title').textContent = `${myName}님의 기록`;
     document.getElementById('record-delete-area').innerHTML = '';
@@ -675,8 +675,8 @@ socket.on('updateQuizzes', (quizzes) => {
         item.innerHTML = `
             <div><strong style="color:var(--accent-color); font-size:1.1em;">${q.name}</strong></div>
             <div style="display:flex; gap:5px;">
-                <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; color:#fff;" onclick="socket.emit('setActiveQuiz', ${q.id})">이 시험지 활성화</button>
-                <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="customConfirm('이 시험지를 영구 삭제하시겠습니까?', () => socket.emit('deleteQuiz', ${q.id}))">삭제</button>
+                <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; color:#fff;" onclick="socket.emit('setActiveQuiz', ${q.id})">활성화</button>
+                <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="customConfirm('시험지를 영구 삭제하시겠습니까?', () => socket.emit('deleteQuiz', ${q.id}))">삭제</button>
             </div>
         `;
         list.appendChild(item);
@@ -684,5 +684,5 @@ socket.on('updateQuizzes', (quizzes) => {
 });
 
 socket.on('activeQuizChanged', (quizName) => {
-    if(currentRole === 'teacher') customAlert(`적용 완료: 이제 학생들은 [${quizName}] 시험을 보게 됩니다.`);
+    if(currentRole === 'teacher') customAlert(`학생들은 [${quizName}] 시험을 보게 됩니다.`);
 });
