@@ -209,7 +209,15 @@ function scrambleWord(word) {
 function showPartDirection() {
     const partData = partsInfo[currentPartIndex];
     document.getElementById('dir-title').textContent = partData.title;
-    document.getElementById('dir-desc').innerHTML = partData.instruction;
+    
+    // ★ 1. 총 문제 수 추가 및 가독성 개선
+    document.getElementById('dir-desc').innerHTML = `
+        <div style="font-size:1.05em; color:var(--text-main); margin-bottom:15px; line-height: 1.5;">${partData.instruction}</div>
+        <div style="display:inline-block; background:rgba(0,0,0,0.5); padding:8px 15px; border-radius:4px; border:1px solid var(--border-color);">
+            해당 파트 문항 수 : <strong style="color:var(--accent-color);">${partData.questions.length} 문제</strong>
+        </div>
+    `;
+    
     document.getElementById('dir-time').textContent = `${Math.floor(partData.timeLimit / 60)}분`;
     
     const exBox = document.getElementById('dir-example');
@@ -222,12 +230,17 @@ function showPartDirection() {
             exBox.className = "mini-quiz";
         }
 
-        let exHtml = '';
+        // ★ 3. 빈칸 언더바 처리
+        let formattedExQ = formatBlanks(partData.example.q).replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+        
+        // ★ 1. 예시 문항임을 확실하게 나타내는 배지 추가
+        let exHtml = `<div style="text-align:center; margin-bottom:10px;"><span style="background:var(--accent-color); color:#000; padding:2px 8px; font-size:0.8em; font-weight:bold; border-radius:2px;">[ 예시 문항 ]</span></div>`;
+
         if (currentPartIndex === 4) {
             let scrambled = scrambleWord(partData.example.answer);
-            exHtml = `<div class="mini-q">Q. ${partData.example.q} <br><span style="font-size:0.7em; color:var(--text-muted); font-weight:normal;">( ${scrambled} )</span></div>`;
+            exHtml += `<div class="mini-q">Q. ${formattedExQ} <br><span style="font-size:0.75em; color:var(--text-muted); font-weight:normal;">( 단서: ${scrambled} )</span></div>`;
         } else {
-            exHtml = `<div class="mini-q">Q. ${partData.example.q}</div>`;
+            exHtml += `<div class="mini-q">Q. ${formattedExQ}</div>`;
         }
 
         if (partData.example.options) {
@@ -286,6 +299,13 @@ function renderProgress() {
         } else if (i < currentQIndex || savedAns === '') { 
             box.classList.add('unsolved');
         }
+        
+        // ★ 5. 클릭 시 해당 문제 번호로 즉시 이동하는 기능 추가
+        box.onclick = () => { 
+            currentQIndex = i; 
+            renderQuestion(); 
+        };
+        
         container.appendChild(box);
     });
 }
@@ -304,6 +324,7 @@ function renderQuestion() {
     const textInput = document.getElementById('text-answer');
     
     optContainer.innerHTML = ''; textInput.style.display = 'none'; textInput.value = '';
+    textInput.oninput = null; // 이벤트 초기화
 
     if (currentPartIndex === 0 || currentPartIndex === 2 || currentPartIndex === 4) {
         qWrapper.classList.add('centered');
@@ -313,36 +334,52 @@ function renderQuestion() {
         document.getElementById('q-number').style.display = 'inline';
     }
 
-    let formattedQ = qData.q.replace(/\\n/g, '<br>').replace(/\n/g, '<br>'); // 문자 \n과 실제 엔터를 모두 <br>로 변환!
+    // ★ 3. 언더바 통일 적용
+    let formattedQ = formatBlanks(qData.q).replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+    const savedAnswer = userAnswers[`${currentPartIndex}_${currentQIndex}`] || "";
     
     if (currentPartIndex === 4) { 
-        let scrambled = scrambleWord(qData.answer);
-        qContent.innerHTML = `${formattedQ} <br><span style="font-size:0.7em; color:var(--text-muted); font-weight:normal;">( ${scrambled} )</span>`;
+        // ★ 6. Part 5 실시간 철자 하이라이트 기능 추가
+        // 단어를 배열로 쪼개서 각각의 스팬(span) 태그로 감쌉니다.
+        let scrambledArr = scrambleWord(qData.answer).split(', '); 
+        let hintHtml = scrambledArr.map((char, idx) => `<span class="hint-letter" id="hint-${idx}">${char}</span>`).join('');
+        
+        qContent.innerHTML = `${formattedQ} <br><div style="margin-top:20px; font-size:0.85em; text-align:center;">${hintHtml}</div>`;
+        
+        textInput.style.display = 'block';
+        textInput.value = savedAnswer;
+        
+        // 입력할 때마다 정답 저장 및 하이라이트 업데이트
+        textInput.oninput = (e) => {
+            saveAnswer(e.target.value);
+            updateScrambleHints(e.target.value, scrambledArr);
+        };
+        // 화면 처음 뜰 때 기존 입력값이 있으면 하이라이트 적용
+        updateScrambleHints(savedAnswer, scrambledArr);
+        
     } else {
         qContent.innerHTML = formattedQ;
-    }
-    
-    const savedAnswer = userAnswers[`${currentPartIndex}_${currentQIndex}`];
-
-    if (qData.options) {
-        optContainer.style.display = 'flex';
-        qData.options.forEach(opt => {
-            const btn = document.createElement('div');
-            btn.className = 'option-btn';
-            btn.textContent = opt;
-            if (savedAnswer === opt) btn.classList.add('selected');
-            
-            btn.onclick = () => {
-                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                saveAnswer(opt);
-            };
-            optContainer.appendChild(btn);
-        });
-    } else {
-        textInput.style.display = 'block';
-        if (savedAnswer) textInput.value = savedAnswer;
-        textInput.oninput = (e) => saveAnswer(e.target.value);
+        
+        if (qData.options) {
+            optContainer.style.display = 'flex';
+            qData.options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                if (savedAnswer === opt) btn.classList.add('selected');
+                
+                btn.onclick = () => {
+                    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    saveAnswer(opt);
+                };
+                optContainer.appendChild(btn);
+            });
+        } else {
+            textInput.style.display = 'block';
+            textInput.value = savedAnswer;
+            textInput.oninput = (e) => saveAnswer(e.target.value);
+        }
     }
 
     document.getElementById('prev-btn').style.visibility = currentQIndex === 0 ? 'hidden' : 'visible';
@@ -354,6 +391,24 @@ function renderQuestion() {
     }
     socket.emit('updateProgress', { part: currentPartIndex + 1, qIndex: currentQIndex + 1 });
 }
+
+// ★ 6. Part 5 실시간 하이라이트를 위한 알고리즘 함수 (새로 추가)
+function updateScrambleHints(typedText, scrambledArr) {
+    let typedChars = typedText.toLowerCase().replace(/\s/g, '').split('');
+    
+    document.querySelectorAll('.hint-letter').forEach((el) => {
+        let char = el.textContent.toLowerCase();
+        let matchIdx = typedChars.indexOf(char);
+        
+        if (matchIdx !== -1) {
+            typedChars.splice(matchIdx, 1); // 사용한 철자는 배열에서 제거
+            el.classList.add('used'); // 파란색 불 켜기
+        } else {
+            el.classList.remove('used'); // 불 끄기
+        }
+    });
+}
+
 
 function saveAnswer(ans) { 
     userAnswers[`${currentPartIndex}_${currentQIndex}`] = ans; 
@@ -423,6 +478,7 @@ function moveToNextPart(isForced = false) {
 // =====================================
 function showStudentRecords() {
     if(!myName) { customAlert("이름을 먼저 입력한 후 기록을 열람해주세요."); return; }
+    reviewReturnScreen = 'waiting-screen'; // ★ 대기실에서 왔다고 기록
     const myRecords = globalRecords.filter(r => r.studentName === myName);
     document.getElementById('records-title').textContent = `${myName}님의 기록`;
     document.getElementById('record-delete-area').innerHTML = '';
@@ -435,6 +491,7 @@ function goBackFromRecords() { switchScreen(currentRole === 'teacher' ? 'teacher
 function logoutStudent() { location.reload(); }
 
 function showTeacherRecords() {
+    reviewReturnScreen = 'teacher-screen'; // ★ 선생님 화면에서 왔다고 기록
     document.getElementById('records-title').textContent = "모든 학생 제출 기록";
     const delArea = document.getElementById('record-delete-area');
     delArea.innerHTML = `<button class="btn outline btn-inline" style="padding: 5px 15px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="clearAllServerRecords()">전체 기록 서버 삭제</button>`;
@@ -534,6 +591,7 @@ function openReview(recordId, role) {
 }
 
 function viewMyRecentRecord() {
+    reviewReturnScreen = 'result-screen'; // ★ 결과 화면에서 왔다고 기록
     const myRecords = globalRecords.filter(r => r.studentName === myName);
     if(myRecords.length > 0) openReview(myRecords[myRecords.length-1].id, 'student');
 }
@@ -626,6 +684,19 @@ function parseExcelToQuiz(rows) {
         if (parts[i].questions.length === 0) return null; 
     }
     return parts;
+}
+
+// --- [새로 추가] 헬퍼 함수 및 변수 ---
+let reviewReturnScreen = 'records-screen'; // 8. 오답노트 복귀 화면 추적용
+
+// 3. 빈칸을 언더바(_)로 통일하는 함수 (3개 이상의 - 또는 _ 를 찾아 통일)
+function formatBlanks(text) {
+    return text.replace(/[-_]{3,}/g, '_______');
+}
+
+// 8. 오답노트에서 뒤로가기 누를 때 원래 있던 곳으로 이동
+function goBackFromReview() {
+    switchScreen(reviewReturnScreen);
 }
 
 // =====================================
