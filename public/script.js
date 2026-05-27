@@ -426,9 +426,9 @@ function handleNextClick() {
             }
         }
         if(hasUnsolved) {
-            customConfirm("풀지 않은 문제가 존재합니다. 다시 한 번 확인해주세요.<br><br>그래도 제출하시겠습니까?", () => moveToNextPart());
+            customConfirm("풀지 않은 문제가 존재합니다. 다시 한 번 확인해주세요.<br>그래도 제출하시겠습니까?", () => moveToNextPart());
         } else {
-            customConfirm("제출 이후에는 수정이 불가합니다. 이 파트를 제출하시겠습니까?", () => moveToNextPart());
+            customConfirm("제출 이후에는 수정이 불가능합니다.<br>이 파트를 제출하시겠습니까?", () => moveToNextPart());
         }
     } else {
         currentQIndex++; renderQuestion();
