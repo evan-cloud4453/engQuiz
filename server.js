@@ -77,11 +77,28 @@ io.on('connection', (socket) => {
         }
     });
 
+    // ★ 학생 시험 승인 로직 (방어 코드 추가됨)
     socket.on('startTest', (studentId) => {
-        if (students[studentId]) {
-            students[studentId].status = 'testing';
-            io.to(studentId).emit('testStarted', activeQuizData || null);
-            if (teacherSocketId) io.to(teacherSocketId).emit('updateStudents', students);
+        if (socket.id === teacherSocketId) {
+            
+            // [추가된 로직] 활성화된 문제지가 없는 경우 차단!
+            if (!activeQuizData || activeQuizData.length === 0) {
+                if (quizzes.length === 0) {
+                    // 저장된 엑셀이 아예 없을 때
+                    socket.emit('serverAlert', '적용할 문제가 없습니다. 문제를 업로드 후 적용(활성화)해 주세요.');
+                } else {
+                    // 엑셀은 있는데 [활성화] 버튼을 안 눌렀을 때
+                    socket.emit('serverAlert', '문제지 적용을 안 했습니다. 문제 관리소에서 [이 시험지 활성화]를 눌러주세요.');
+                }
+                return; // 여기서 즉시 중단 (학생에게 안 넘어감)
+            }
+
+            // 문제지가 정상 적용되어 있으면 시험 시작
+            if (students[studentId]) {
+                students[studentId].status = 'testing';
+                io.to(studentId).emit('testStarted', activeQuizData);
+                io.to(teacherSocketId).emit('updateStudents', students);
+            }
         }
     });
 
