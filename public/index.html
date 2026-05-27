@@ -223,6 +223,25 @@
             .record-item { flex-direction: column; align-items: flex-start; gap: 10px; padding: 15px 0; }
             .record-item > div { width: 100%; }
             .record-item .btn { width: 100%; text-align: center; margin-top: 5px; padding: 12px 0 !important; }
+
+            .upload-flex-container {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 8px;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .upload-flex-container .input-field {
+                margin-bottom: 0 !important; /* 전역 마진 무시하고 버튼과 높이 정렬 */
+                flex-grow: 1; /* 남은 가로 공간 모두 차지 */
+                width: auto;
+            }
+            .upload-flex-container .btn {
+                margin-bottom: 0 !important;
+                width: auto !important; /* 전역 100% 무시하고 텍스트 길이에 맞춤 */
+                flex-shrink: 0; /* 버튼 크기 찌그러짐 방지 */
+                white-space: nowrap; /* '업로드' 글자 줄바꿈 방지 */
+            }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -335,25 +354,26 @@
         </div>
         <div id="student-list" class="student-grid"></div>
         
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px dashed var(--border-color);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; color:var(--text-main);">문제 관리소</h3>
-                <button class="btn outline btn-inline" style="padding: 5px 10px; font-size: 0.85em; margin: 0; border-color: #2ecc71; color: #2ecc71;" onclick="downloadExcelTemplate()">엑셀 양식 다운로드 ⬇</button>
+       <div style="margin-top: 30px; padding-top: 15px; border-top: 1px dashed var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0; color:var(--text-main); text-align: left;">문제 관리소</h3>
+                <button class="btn outline btn-inline" style="padding: 4px 8px; font-size: 0.8em; margin: 0; border-color: #2ecc71; color: #2ecc71;" onclick="downloadExcelTemplate()">양식 다운로드 ⬇</button>
             </div>
             
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="quiz-name-input" class="input-field" style="margin-bottom:0; flex-grow: 1; min-width: 200px;" placeholder="새 시험지 이름 (예: 1주차 모의고사)">
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                <input type="text" id="quiz-name-input" class="input-field" style="margin: 0; flex-grow: 1; padding: 10px; font-size: 0.95em;" placeholder="새 시험지 이름 (예: 1주차 모의고사)">
                 <input type="file" id="quiz-file-input" accept=".xlsx" style="display:none;" onchange="handleFileUpload(event)">
                 
-                <button class="btn btn-inline" style="padding: 15px; flex-shrink: 0;" onclick="
+                <button class="btn btn-inline" style="margin: 0; padding: 10px 15px; font-size: 0.95em; flex-shrink: 0; white-space: nowrap;" onclick="
                     if(!document.getElementById('quiz-name-input').value.trim()) { 
                         customAlert('시험지 이름을 먼저 적어주세요.'); 
                     } else { 
                         document.getElementById('quiz-file-input').click(); 
-                    }">엑셀 업로드</button>
+                    }">업로드</button>
             </div>
-            <p style="color:var(--text-muted); font-size:0.85em; margin-bottom:10px;">※ 학생들에게 제공할 시험지의 [활성화] 버튼을 반드시 눌러주세요.</p>
-            <div id="quiz-list" class="student-grid" style="max-height: 250px;"></div>
+            
+            <p style="color:var(--text-muted); font-size:0.8em; margin-bottom:10px; margin-top: 0;">※ 학생들에게 제공할 시험지의 [활성화] 버튼을 꼭 눌러주세요.</p>
+            <div id="quiz-list" class="student-grid" style="max-height: 200px;"></div>
         </div>
 
     <div id="quiz-screen" class="screen">
