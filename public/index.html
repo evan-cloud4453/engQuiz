@@ -133,27 +133,43 @@
         .timer { color: var(--wrong-color); font-size: 1.2em; text-shadow: 0 0 5px rgba(229, 115, 115, 0.5); }
         
         .progress-container { 
-            display: flex; gap: 5px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; 
+            margin-bottom: 25px; /* JS에서 grid 속성을 부여할 예정입니다 */
         }
         .progress-box { 
-            flex: 1 1 calc(100% / 15 - 5px); /* 한 줄에 최대 15개 기준 자동 배분 */
-            max-width: 35px; min-width: 15px; height: 10px; 
-            background-color: var(--btn-bg); border: 1px solid var(--border-color); 
-            transition: all 0.3s; border-radius: 2px; 
-            cursor: pointer; /* 클릭 가능하도록 마우스 커서 변경 */
+            height: 8px; /* 두께를 살짝 얇게 하여 세련되게 */
+            background-color: var(--unsolved-color); border: 1px solid rgba(255,255,255,0.1); 
+            transition: all 0.2s; border-radius: 2px; cursor: pointer; 
         }
         .progress-box:hover { opacity: 0.8; transform: scale(1.1); }
-        .progress-box.current { border-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); background-color: transparent;}
+        .progress-box.current { border-color: var(--accent-color); background-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
         .progress-box.solved { background-color: var(--correct-color); border-color: var(--correct-color); }
-        .progress-box.unsolved { background-color: var(--unsolved-color); border-color: var(--unsolved-color); }
+        .progress-box.unsolved { background-color: var(--btn-bg); border-color: var(--border-color); }
 
         /* 디렉션 예시 미니 UI */
-        .direction-box { background-color: var(--btn-bg); padding: 25px; border: 1px solid var(--border-color); margin-bottom: 25px; line-height: 1.6; }
-        .mini-quiz { background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); padding: 10px; margin: 10px 0; border-radius: 2px; font-size: 0.85em; text-align: left; }
-        .mini-quiz.centered-example { text-align: center; font-size: 1.1em; padding: 15px; border-top: 1px dashed var(--border-color); border-bottom: 1px dashed var(--border-color); border-left:none; border-right:none; background: transparent; }
-        .mini-quiz .mini-q { margin-bottom: 10px; font-weight: bold; color: var(--accent-color); }
-        .mini-quiz .mini-opt { padding: 6px 10px; border: 1px solid var(--border-color); margin-bottom: 4px; background: var(--btn-bg); font-size: 0.9em; }
-        .mini-quiz .mini-opt.highlight { background-color: var(--correct-bg); color: var(--correct-color); border-color: var(--correct-color); font-weight: bold; box-shadow: inset 0 0 10px rgba(129, 199, 132, 0.2); }
+        /* [수정] 디렉션 박스 및 미니 퀴즈 세련되게 다이어트 */
+        .direction-box { 
+            background-color: transparent; padding: 15px 10px; 
+            border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); 
+            margin-bottom: 25px; line-height: 1.6; 
+        }
+        .mini-quiz { 
+            background: transparent; border: none; padding: 0; margin: 15px 0 0 0; 
+            font-size: 0.95em; text-align: left; 
+        }
+        .mini-quiz.centered-example { 
+            text-align: center; font-size: 1.05em; padding: 15px 0 0 0; 
+            border: none; background: transparent; 
+        }
+        .mini-quiz .mini-q { margin-bottom: 10px; color: var(--text-main); }
+        .mini-quiz .mini-opt { 
+            padding: 4px 0; border: none; background: transparent; 
+            color: var(--text-muted); font-size: 0.95em; 
+        }
+        /* 기존의 두꺼운 초록색 박스 대신, 세련된 글자 하이라이트로 변경 */
+        .mini-quiz .mini-opt.highlight { 
+            background: transparent; color: var(--accent-color); 
+            font-weight: bold; border: none; box-shadow: none; 
+        }
         
         .question-text { font-size: 1.25em; margin-bottom: 30px; line-height: 1.6; text-align: left; padding: 15px 20px; background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-color); }
         .question-text.centered { text-align: center; font-size: 1.6em; border-left: none; background: none; border-top: 1px dashed var(--border-color); border-bottom: 1px dashed var(--border-color); padding: 35px 10px; }
