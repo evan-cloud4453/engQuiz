@@ -208,37 +208,53 @@ function scrambleWord(word) {
 
 function showPartDirection() {
     const partData = partsInfo[currentPartIndex];
+    
+    // 1. 파트 제목
     document.getElementById('dir-title').textContent = partData.title;
     
-    // ★ 1. 조잡한 강조를 빼고 세련된 여백과 글자색으로만 총 문제 수 표시
-    document.getElementById('dir-desc').innerHTML = `
-        <div style="font-size:1.1em; color:var(--text-main); margin-bottom:8px;">${partData.instruction}</div>
-        <div style="font-size:0.9em; color:var(--text-muted);">총 문항 수 : ${partData.questions.length}문제</div>
+    // [버그 방지] 기존 HTML에 있던 투박한 제한시간 텍스트 영역을 강제로 숨김 처리
+    const oldTimeText = document.getElementById('dir-time');
+    if (oldTimeText && oldTimeText.parentNode) {
+        oldTimeText.parentNode.style.display = 'none'; 
+    }
+    
+    // 2. 상단 정보 (문항 수 및 제한 시간)
+    let infoHtml = `
+        <div style="display: flex; justify-content: space-around; font-size: 1.05em; color: var(--text-muted); margin-bottom: 20px; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px;">
+            <span>해당 파트: <strong style="color: var(--accent-color);">${partData.questions.length}문항</strong></span>
+            <span>제한 시간: <strong style="color: var(--wrong-color);">${Math.floor(partData.timeLimit / 60)}분</strong></span>
+        </div>
     `;
     
-    document.getElementById('dir-time').textContent = `${Math.floor(partData.timeLimit / 60)}분`;
+    // 3. 중간 발문 (지시문) - 세련되고 굵게
+    let instructionHtml = `
+        <div style="font-size: 1.15em; color: var(--text-main); margin-bottom: 25px; text-align: left; line-height: 1.6; font-weight: bold;">
+            ${partData.instruction}
+        </div>
+    `;
     
+    // 상단 정보와 중간 발문을 합쳐서 출력
+    document.getElementById('dir-desc').innerHTML = infoHtml + instructionHtml;
+    
+    // 4. 하단 예시 문항 (실제 문제 화면의 축소판 리플리카)
     const exBox = document.getElementById('dir-example');
     exBox.innerHTML = '';
     
     if(partData.example) {
-        if(currentPartIndex === 0 || currentPartIndex === 2 || currentPartIndex === 4) {
+        if(currentPartIndex === 4) {
             exBox.className = "mini-quiz centered-example";
         } else {
             exBox.className = "mini-quiz";
         }
 
+        // 언더바(_) 통일 및 줄바꿈 처리
         let formattedExQ = formatBlanks(partData.example.q).replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
         
-        // ★ 1. 예시 문항이라는 점을 투박한 배지 대신 세련된 텍스트로 안내
-        let exHtml = `<div style="text-align:left; color:var(--text-muted); font-size:0.85em; margin-bottom:5px;">[ 예시 문항 ]</div>`;
-        if(currentPartIndex === 0 || currentPartIndex === 2 || currentPartIndex === 4) {
-            exHtml = `<div style="text-align:center; color:var(--text-muted); font-size:0.85em; margin-bottom:10px;">[ 예시 문항 ]</div>`;
-        }
+        let exHtml = `<div style="color:var(--text-muted); font-size:0.85em; margin-bottom:10px; font-weight:bold;">[ 예시 문항 화면 ]</div>`;
 
         if (currentPartIndex === 4) {
             let scrambled = scrambleWord(partData.example.answer);
-            exHtml += `<div class="mini-q">Q. ${formattedExQ} <br><span style="font-size:0.75em; color:var(--text-muted);">( 단서: ${scrambled} )</span></div>`;
+            exHtml += `<div class="mini-q">Q. ${formattedExQ} <br><span style="font-size:0.75em; color:var(--text-muted); font-weight:normal; margin-top:5px; display:inline-block;">( 단서: ${scrambled} )</span></div>`;
         } else {
             exHtml += `<div class="mini-q">Q. ${formattedExQ}</div>`;
         }
@@ -249,8 +265,9 @@ function showPartDirection() {
                 exHtml += `<div class="mini-opt ${hlClass}">${opt}</div>`;
             });
         } else {
-            exHtml += `<div class="mini-opt highlight" style="text-align:center; margin-top:10px;">정답 입력 예시: ${partData.example.answer}</div>`;
+            exHtml += `<div class="mini-opt highlight" style="text-align:center; margin-top:10px;">입력 답안 예시: ${partData.example.answer}</div>`;
         }
+        
         exBox.innerHTML = exHtml;
         exBox.style.display = 'block';
     } else {
