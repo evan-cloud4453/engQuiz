@@ -10,7 +10,7 @@ const DEFAULT_PARTS_INFO = [
         example: { q: "다음 중 단어의 관계가 나머지 셋과 다른 하나를 고르시오.", options: ["(A) abandon - give up", "(B) reduce - decrease", "(C) expand - contract", "(D) distinguish - differentiate"], answer: "(C) expand - contract" }
     },
     { 
-        title: "Part 3. 품사/의미 파악", timeLimit: 300, instruction: "제시된 영단어의 올바른 품사와 뜻이 바르게 짝지어진 보기를 고르시오.<br>(명사: n. / 동사: v. / 형용사: adj. / 부사: ad.)", 
+        title: "Part 3. 품사/의미 파악", timeLimit: 300, instruction: "제시된 영단어의 올바른 품사와 뜻이 바르게 짝지어진 보기를 고르시오.<br><span style='font-size: 0.9em; font-weight: normal; color: var(--text-muted);'>(명사: n. / 동사: v. / 형용사: adj. / 부사: ad.)</span>", 
         example: { q: "consistently", options: ["(A) adj. 지속적인", "(B) n. 일관성", "(C) v. 구성되다", "(D) ad. 지속적으로, 일관되게"], answer: "(D) ad. 지속적으로, 일관되게" }
     },
     { 
