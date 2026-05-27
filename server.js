@@ -87,9 +87,15 @@ io.on('connection', (socket) => {
 
     // 퀴즈 업로드, 삭제, 활성화 이벤트
     // ★ 엑셀 시험지 업로드 (DB 저장)
-    socket.on('uploadQuiz', async (quizData) => { // async 추가
+    socket.on('uploadQuiz', async (quizData) => { 
         if (socket.id === teacherSocketId) {
-            const newQuiz = new Quiz(quizData);
+            // [핵심 수정] 서버에서 억지로 합치던 로직을 제거하고, 
+            // index.html에서 예시문과 합쳐서 보낸 데이터를 그대로 DB에 저장합니다!
+            const newQuiz = new Quiz({
+                id: quizData.id,
+                name: quizData.name,
+                data: quizData.data 
+            });
             await newQuiz.save(); // DB에 영구 저장!
             
             quizzes.push(quizData);
