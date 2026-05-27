@@ -670,11 +670,13 @@ socket.on('updateQuizzes', (quizzes) => {
     [...quizzes].reverse().forEach(q => {
         const item = document.createElement('div');
         item.className = 'record-item';
+        
+        // ★ 네이티브 confirm() 대신 시스템 UI 모달인 customConfirm()으로 교체
         item.innerHTML = `
-            <div><strong style="color:var(--accent-color); font-size:1.1em;">📝 ${q.name}</strong></div>
+            <div><strong style="color:var(--accent-color); font-size:1.1em;">${q.name}</strong></div>
             <div style="display:flex; gap:5px;">
                 <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; color:#fff;" onclick="socket.emit('setActiveQuiz', ${q.id})">이 시험지 활성화</button>
-                <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="if(confirm('이 시험지를 영구 삭제하시겠습니까?')) socket.emit('deleteQuiz', ${q.id})">삭제</button>
+                <button class="btn outline btn-inline" style="padding:6px 12px; font-size:0.85em; border-color:var(--wrong-color); color:var(--wrong-color);" onclick="customConfirm('이 시험지를 영구 삭제하시겠습니까?', () => socket.emit('deleteQuiz', ${q.id}))">삭제</button>
             </div>
         `;
         list.appendChild(item);
