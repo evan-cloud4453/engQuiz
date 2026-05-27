@@ -291,7 +291,7 @@
         <div id="teacher-form" style="display:none; max-width: 400px; margin: 0 auto; text-align: center;">
             <h3 style="margin-bottom: 20px;">감독관 인증</h3>
             <input type="password" id="teacher-pw" placeholder="관리자 비밀번호" class="input-field">
-            <button class="btn" onclick="login('teacher')">현황판 접속</button>
+            <button class="btn" onclick="login('teacher')">접속</button>
             <button class="btn outline" style="margin-top:10px; border:none;" onclick="cancelLogin()">돌아가기</button>
         </div>
     </div>
@@ -349,7 +349,7 @@
     <div id="teacher-screen" class="screen">
         <h2>실시간 시험 현황판</h2>
         <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-            <button class="btn outline btn-inline" style="padding: 8px 15px;" onclick="showTeacherRecords()">모든 학생 기록 열람</button>
+            <button class="btn outline btn-inline" style="padding: 8px 15px;" onclick="showTeacherRecords()">학생 기록 열람</button>
             <button class="btn outline btn-inline" style="padding: 8px 15px;" onclick="location.reload()">로그아웃</button>
         </div>
         <div id="student-list" class="student-grid"></div>
