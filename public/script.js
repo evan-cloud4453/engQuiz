@@ -210,12 +210,10 @@ function showPartDirection() {
     const partData = partsInfo[currentPartIndex];
     document.getElementById('dir-title').textContent = partData.title;
     
-    // ★ 1. 총 문제 수 추가 및 가독성 개선
+    // ★ 1. 조잡한 강조를 빼고 세련된 여백과 글자색으로만 총 문제 수 표시
     document.getElementById('dir-desc').innerHTML = `
-        <div style="font-size:1.05em; color:var(--text-main); margin-bottom:15px; line-height: 1.5;">${partData.instruction}</div>
-        <div style="display:inline-block; background:rgba(0,0,0,0.5); padding:8px 15px; border-radius:4px; border:1px solid var(--border-color);">
-            해당 파트 문항 수 : <strong style="color:var(--accent-color);">${partData.questions.length} 문제</strong>
-        </div>
+        <div style="font-size:1.1em; color:var(--text-main); margin-bottom:8px;">${partData.instruction}</div>
+        <div style="font-size:0.9em; color:var(--text-muted);">총 문항 수 : ${partData.questions.length}문제</div>
     `;
     
     document.getElementById('dir-time').textContent = `${Math.floor(partData.timeLimit / 60)}분`;
@@ -230,15 +228,17 @@ function showPartDirection() {
             exBox.className = "mini-quiz";
         }
 
-        // ★ 3. 빈칸 언더바 처리
         let formattedExQ = formatBlanks(partData.example.q).replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
         
-        // ★ 1. 예시 문항임을 확실하게 나타내는 배지 추가
-        let exHtml = `<div style="text-align:center; margin-bottom:10px;"><span style="background:var(--accent-color); color:#000; padding:2px 8px; font-size:0.8em; font-weight:bold; border-radius:2px;">[ 예시 문항 ]</span></div>`;
+        // ★ 1. 예시 문항이라는 점을 투박한 배지 대신 세련된 텍스트로 안내
+        let exHtml = `<div style="text-align:left; color:var(--text-muted); font-size:0.85em; margin-bottom:5px;">[ 예시 문항 ]</div>`;
+        if(currentPartIndex === 0 || currentPartIndex === 2 || currentPartIndex === 4) {
+            exHtml = `<div style="text-align:center; color:var(--text-muted); font-size:0.85em; margin-bottom:10px;">[ 예시 문항 ]</div>`;
+        }
 
         if (currentPartIndex === 4) {
             let scrambled = scrambleWord(partData.example.answer);
-            exHtml += `<div class="mini-q">Q. ${formattedExQ} <br><span style="font-size:0.75em; color:var(--text-muted); font-weight:normal;">( 단서: ${scrambled} )</span></div>`;
+            exHtml += `<div class="mini-q">Q. ${formattedExQ} <br><span style="font-size:0.75em; color:var(--text-muted);">( 단서: ${scrambled} )</span></div>`;
         } else {
             exHtml += `<div class="mini-q">Q. ${formattedExQ}</div>`;
         }
@@ -249,7 +249,7 @@ function showPartDirection() {
                 exHtml += `<div class="mini-opt ${hlClass}">${opt}</div>`;
             });
         } else {
-            exHtml += `<div class="mini-opt highlight" style="text-align:center;">정답 입력 예시: ${partData.example.answer}</div>`;
+            exHtml += `<div class="mini-opt highlight" style="text-align:center; margin-top:10px;">정답 입력 예시: ${partData.example.answer}</div>`;
         }
         exBox.innerHTML = exHtml;
         exBox.style.display = 'block';
@@ -287,20 +287,35 @@ function renderProgress() {
     const container = document.getElementById('progress-container');
     container.innerHTML = '';
     const partData = partsInfo[currentPartIndex];
+    const totalQ = partData.questions.length;
+    
+    // ★ 3. 비대칭 해결 알고리즘: 문제 수를 정확히 반으로 나누어 CSS Grid로 강제 정렬
+    let cols = totalQ;
+    if (totalQ > 15) {
+        cols = Math.ceil(totalQ / 2); // 예: 30개면 15개씩 2줄로 완벽히 분할
+    }
+    
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    container.style.gap = '5px';
     
     partData.questions.forEach((_, i) => {
         const box = document.createElement('div');
         box.className = 'progress-box';
+        
         if (i === currentQIndex) box.classList.add('current');
         
         const savedAns = userAnswers[`${currentPartIndex}_${i}`];
+        
+        // ★ 2. 노란색 사라짐 버그 해결 로직
         if (savedAns !== undefined && savedAns.trim() !== '') {
+            // 정답을 입력한 확실한 상태 = 초록색
             box.classList.add('solved');
-        } else if (i < currentQIndex || savedAns === '') { 
+        } else { 
+            // 아직 도달하지 않았거나, 도달했다가 빈칸으로 둔 모든 경우 = 무조건 노란색 유지
             box.classList.add('unsolved');
         }
         
-        // ★ 5. 클릭 시 해당 문제 번호로 즉시 이동하는 기능 추가
         box.onclick = () => { 
             currentQIndex = i; 
             renderQuestion(); 
@@ -309,6 +324,7 @@ function renderProgress() {
         container.appendChild(box);
     });
 }
+
 
 function renderQuestion() {
     renderProgress(); 
