@@ -45,12 +45,14 @@ io.on('connection', (socket) => {
     socket.on('login', (data) => {
         if (data.role === 'teacher') {
             if (data.password === 'admin123') { 
-                teacherSocketId = socket.id;
-                socket.emit('loginSuccess', { role: 'teacher' });
-                io.to(teacherSocketId).emit('updateStudents', students);
-                io.emit('updateRecords', testRecords);
-                socket.emit('updateQuizzes', quizzes);
-            } else {
+            teacherSocketId = socket.id;
+            socket.emit('loginSuccess', { role: 'teacher' });
+            
+            // ★ 핵심 수정: 우체국(Room)을 거치지 않고 직통(socket)으로 순서대로 보냅니다!
+            socket.emit('updateStudents', students);
+            socket.emit('updateRecords', testRecords);
+            socket.emit('updateQuizzes', quizzes);
+        } else {
                 socket.emit('loginFail', '비밀번호가 틀렸습니다.');
             }
         } else if (data.role === 'student') {
