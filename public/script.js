@@ -58,6 +58,23 @@ function customConfirm(msg, yesCallback) {
 // 3. 메인 앱 로직 및 소켓 통신
 // =====================================
 const socket = io();
+socket.on('connect', () => {
+    // 이미 로그인했던 학생이라면 서버에 재연결 신호 전송
+    if (myName && currentRole === 'student') {
+        let currentStatus = 'waiting';
+        if (document.getElementById('quiz-screen').classList.contains('active')) currentStatus = 'testing';
+        else if (document.getElementById('waiting-approval-screen').classList.contains('active')) currentStatus = 'waiting_approval';
+        
+        socket.emit('reconnectStudent', {
+            name: myName,
+            status: currentStatus,
+            currentPart: currentPartIndex + 1,
+            currentQ: currentQIndex + 1
+        });
+    }
+});
+
+
 let currentRole = '';
 let myName = '';
 let currentPartIndex = 0; let currentQIndex = 0; let remainingTime = 0;
@@ -142,6 +159,12 @@ socket.on('updateStudents', (students) => {
             statusText = '응시중'; statusColor = 'var(--correct-color)';
             actionBtn = `<button onclick="socket.emit('togglePause', '${st.id}')" class="btn outline btn-inline" style="border-color:var(--wrong-color); color:var(--wrong-color);">일시 정지</button>`;
             progressInfo = `Part ${st.currentPart} 진행 중`;
+        } else if (st.status === 'disconnected') {
+            statusText = '연결 끊김'; 
+            statusColor = 'var(--wrong-color)';
+            actionBtn = `<span style="color:var(--text-muted); font-size:0.9em;">재접속 대기중...</span>`;
+            progressInfo = `통신 단절 (화면 꺼짐 등)`;
+        }
         } else if (st.status === 'paused') {
             statusText = '정지됨'; statusColor = 'var(--wrong-color)';
             actionBtn = `<button onclick="socket.emit('togglePause', '${st.id}')" class="btn outline btn-inline" style="border-color:var(--correct-color); color:var(--correct-color);">시험 재개</button>`;
