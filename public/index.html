@@ -336,12 +336,16 @@
         <div id="student-list" class="student-grid"></div>
         
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px dashed var(--border-color);">
-            <h3 style="text-align:left; color:var(--text-main);">문제 관리소</h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="quiz-name-input" class="input-field" style="margin-bottom:0;" placeholder="새 시험지 이름 (예: 1주차 모의고사)">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color:var(--text-main);">문제 관리소</h3>
+                <button class="btn outline btn-inline" style="padding: 5px 10px; font-size: 0.85em; margin: 0; border-color: #2ecc71; color: #2ecc71;" onclick="downloadExcelTemplate()">엑셀 양식 다운로드 ⬇</button>
+            </div>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="quiz-name-input" class="input-field" style="margin-bottom:0; flex-grow: 1; min-width: 200px;" placeholder="새 시험지 이름 (예: 1주차 모의고사)">
                 <input type="file" id="quiz-file-input" accept=".xlsx" style="display:none;" onchange="handleFileUpload(event)">
                 
-                <button class="btn btn-inline" style="padding: 15px;" onclick="
+                <button class="btn btn-inline" style="padding: 15px; flex-shrink: 0;" onclick="
                     if(!document.getElementById('quiz-name-input').value.trim()) { 
                         customAlert('시험지 이름을 먼저 적어주세요.'); 
                     } else { 
@@ -351,7 +355,6 @@
             <p style="color:var(--text-muted); font-size:0.85em; margin-bottom:10px;">※ 학생들에게 제공할 시험지의 [활성화] 버튼을 반드시 눌러주세요.</p>
             <div id="quiz-list" class="student-grid" style="max-height: 250px;"></div>
         </div>
-    </div>
 
     <div id="quiz-screen" class="screen">
         <div class="quiz-header">
