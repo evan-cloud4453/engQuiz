@@ -29,10 +29,11 @@
             font-family: 'Noto Serif KR', serif;
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 40px 20px; 
+            box-sizing: border-box;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 90vh;
             background-color: #05070a;
             background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(5, 10, 20, 0.9)), 
@@ -40,6 +41,7 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            
         }
 
         .app-container {
@@ -49,6 +51,8 @@
             outline-offset: 4px;
             border-radius: 2px;
             box-shadow: var(--shadow);
+            box-sizing: border-box;
+            min-height: auto;
             width: 100%;
             max-width: 800px;
             padding: 85px 40px 50px 40px; /* 상단 패딩을 늘려 뱃지와의 간격 확보 */
@@ -128,8 +132,17 @@
         }
         .timer { color: var(--wrong-color); font-size: 1.2em; text-shadow: 0 0 5px rgba(229, 115, 115, 0.5); }
         
-        .progress-container { display: flex; gap: 4px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; }
-        .progress-box { width: 22px; height: 8px; background-color: var(--btn-bg); border: 1px solid var(--border-color); transition: all 0.3s; border-radius: 1px; }
+        .progress-container { 
+            display: flex; gap: 5px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; 
+        }
+        .progress-box { 
+            flex: 1 1 calc(100% / 15 - 5px); /* 한 줄에 최대 15개 기준 자동 배분 */
+            max-width: 35px; min-width: 15px; height: 10px; 
+            background-color: var(--btn-bg); border: 1px solid var(--border-color); 
+            transition: all 0.3s; border-radius: 2px; 
+            cursor: pointer; /* 클릭 가능하도록 마우스 커서 변경 */
+        }
+        .progress-box:hover { opacity: 0.8; transform: scale(1.1); }
         .progress-box.current { border-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); background-color: transparent;}
         .progress-box.solved { background-color: var(--correct-color); border-color: var(--correct-color); }
         .progress-box.unsolved { background-color: var(--unsolved-color); border-color: var(--unsolved-color); }
@@ -148,7 +161,7 @@
         .options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px;}
         .option-btn { background-color: var(--btn-bg); color: var(--text-main); text-align: left; border: 1px solid var(--border-color); border-radius: 2px; padding: 18px 20px; font-size: 1.05em; cursor: pointer; transition: all 0.2s; }
         .option-btn:hover { background-color: var(--btn-hover); border-color: var(--accent-color); }
-        .option-btn.selected { background-color: rgba(212, 175, 55, 0.15); border-color: var(--accent-color); color: var(--accent-color); font-weight: bold; }
+        .option-btn.selected { background-color: rgba(63, 219, 255, 0.15); border: 2px solid var(--accent-color); color: #fff; font-weight: bold; box-shadow: inset 0 0 10px rgba(63,219,255,0.2); text-shadow: 0 0 5px var(--accent-color); }
         .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 25px; }
 
         /* 선생님 현황판 및 리뷰 */
@@ -162,6 +175,19 @@
         .badge { padding: 4px 10px; font-size: 0.85em; font-weight: bold; border-radius: 2px; color: #111; }
         .badge.correct { background-color: var(--correct-color); }
         .badge.wrong { background-color: var(--wrong-color); }
+
+        /* [추가] Part 5 철자 힌트 하이라이트용 CSS */
+        .hint-letter { 
+            display: inline-block; padding: 3px 8px; margin: 2px; 
+            border-radius: 4px; background: rgba(255,255,255,0.1); 
+            border: 1px solid var(--border-color); transition: all 0.2s; 
+            font-family: monospace; font-size: 1.1em;
+        }
+        .hint-letter.used { 
+            color: #000; background: var(--accent-color); 
+            border-color: var(--accent-color); opacity: 0.8; 
+            box-shadow: 0 0 8px var(--accent-color);
+        }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--btn-bg); border-radius: 4px; }
@@ -430,7 +456,7 @@
         <h2 id="review-title">오답 노트</h2>
         <div id="review-content" class="student-grid" style="max-height: 60vh;"></div>
         <div style="text-align: center; margin-top: 20px;">
-            <button class="btn outline btn-inline" onclick="switchScreen('records-screen')">← 목록으로</button>
+            <button class="btn outline btn-inline" onclick="goBackFromReview()">← 돌아가기</button>
         </div>
     </div>
 </div>
